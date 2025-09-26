@@ -1,5 +1,5 @@
  
-Assignment #2 – Template
+Assignment #2 – RISE-EDU
 
 Software Requirements Specification
 
