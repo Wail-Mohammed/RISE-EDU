@@ -129,6 +129,46 @@ Example:
 Example:
 4.3.1 System must render all UI pages in no more than 9 seconds for dynamic pages. Static pages (HTML-only) must be rendered in less than 3 seconds. 
  
+ 4.    Use Case Specifications Document
+
+Use Case ID: UC01
+Use Case Name: Manage User Login 
+Relevant Requirements:
+·       Requirements Document ID: Security and Privacy Document 4.1
+Primary Actor:
+·       Student
+·       School Supervisor
+Pre-conditions:
+·       The server is online and user client is connected to server. 
+·       The user must have an existing account and is active.
+·       The user credentials are stored in a data file.
+·       The client has access to user list.
+Post-conditions:
+·       User credentials are checked.
+·       Session is created if credentials are valid, otherwise access is denied. 
+·       Appropriate user role and access is given to students or supervisors.
+Basic Flow or Main Scenario:
+1)     The user navigates to login page.
+2)     The user is prompted to enter username and password .
+3)     The user enters username and password then hits submit.
+4)     The system verifies the credentials.
+5)     The system assigns role (supervisor or student) based on account type.
+6)     If this is the first time the user logs in or if password reset needed:
+a)     The system redirects to account management page.
+b)     The user must either change their default username and/or password per system security requirements.
+7)     The system validates the changes and updates the user records.
+8)     The system creates an authenticated session.
+9)     The system redirects the user to the main dashboard.
+Extensions or Alternate Flows:
+·       Invalid Credentials at log in:
+If the user enters an invalid current credentials, per system’s security requirements, the system displays an error message, “Invalid Username or password”, and asks user to retry.
+·       Invalid Credentials at update page:
+If the user enters an invalid username or password per system’s security requirements, the system displays an error message “Invalid Username or password” and asks user to retry.
+Exceptions:
+·       If the authentication system or server is unavailable, an error message is displayed to the user.
+Related Use Cases:
+·       UC04 Course Planner and Enrollment.
+
  
  
  
