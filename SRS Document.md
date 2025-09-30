@@ -84,7 +84,13 @@ List appropriate constraints.
 Constraint example: Since users may use any web browser to access the system, no browser-specific code is to be used in the system. 
 2.5.         Assumptions and Dependencies—shichang wang  and Wail
 List appropriate assumptions
-Assumption Example: It is assumed that the maximum number of users at a given time is 15,000.
+Shichang Wang:
+2.5.7 students and administrators will not share their login information. 
+2.5.8 Students will be responsible for checking their enrollment status(if the student is on the waitlist for the course).
+2.5.9 Student accounts created based on correct personal information. 
+2.5.10 Students will be notified of the enrollment start date.
+2.5.11 Students will complete their enrollment within the deadlines.
+2.5.12 The reporting module will only generate reports based on data in the system.
  
 3.           Specific Requirements
 3.1.         Functional Requirements
@@ -101,10 +107,21 @@ Example:
 Provide module specific requirements as appropriate.             
 Example:
 3.1.2.1 Users should be allowed to log in using their issued id and pin, both of which are alphanumeric strings between 6 and 20 characters in length. 
-3.1.4.     _____ Module Requirements: -Shichang Wang(Reporting (log))
-Provide module specific requirements as appropriate. 
-Example:
-3.1.2.1 Users should be allowed to log in using their issued id and pin, both of which are alphanumeric strings between 6 and 20 characters in length. 
+3.1.4.     __Course Planner/Reporting___ Module Requirements: -Shichang Wang(Reporting (log))
+3.1.4.1
+ The system should keep track of every enrollment action that students make, such as add, drop, or waitlist for each course. It needs to save the student ID, the course ID, and also the timestaps. This is important because otherwise there is no way to trace back what the student has done before.
+3.1.4.2
+ Admins should be able to make reports that show how many people are in a class and also how many are on the waitlist. These numbers are useful so that admins can see which classes are full and maybe open another section. Without this feature, they won’t know how to adjust class capacity.
+3.1.4.3
+ The system will let administrators check a student’s past enrollment history. For example, what courses the student added before or dropped before. This way if a student has questions or a problem, the admin can look it up and confirm.
+3.1.4.4
+ After a student makes a change, the reporting module should update almost synchronously( avoid commercial advertisement ) so students can see the result. For example, if a student adds a course, it should appear in their schedule when they switch the pages. The idea is that the update must be shown right after the action is completed.
+3.1.4.5
+ The system also needs to display error messages whenever students make invalid action. Like if a student tries to register for a class but didn’t meet the prerequisites, it should display “you need finished… to register this course”. 
+3.1.4.6
+ The system will generate official documents such as transcripts or enrollment reports. These should come out as read-only files. Students can only view and print the document, while only authorized faculty or admins can edit. This makes sure the reports are secure and reliable.
+
+
  
 3.2.         External Interface Requirements-Wail
 Provide module specific requirements as appropriate. 
@@ -121,10 +138,11 @@ Example:
 Example:
 4.1.1 The System must encrypt data being transmitted over the Internet. 
 4.2.         Environmental Requirements- shichang wang
-Example:
-4.2.1 System cannot require that any software other than a web browser be installed on user computers. 
-4.2.2 System must make use of the University’s existing Oracle 9i implementation for its database. 
-4.2.3 System must be deployed on existing Linux-based server infrastructure. 
+4.2.1 The system shall run on the university’s existing Linux-based server infrastructure.
+4.2.2 The system shall operate properly with the university’s existing network and power infrastructure.
+4.2.3 The system shall not require high-performance machines; any standard desktop used by students or administrators will be sufficient to run the client.
+4.2.4 The system shall be deployable on existing university servers without requiring hardware upgrades.
+4.2.5 The system shall remain compatible with future minor upgrades to the university’s operating systems.
 4.3.         Performance Requirements - Emmanuel
 Example:
 4.3.1 System must render all UI pages in no more than 9 seconds for dynamic pages. Static pages (HTML-only) must be rendered in less than 3 seconds. 
@@ -168,6 +186,67 @@ Exceptions:
 ·       If the authentication system or server is unavailable, an error message is displayed to the user.
 Related Use Cases:
 ·       UC04 Course Planner and Enrollment.
+-------------------------------------------------------
+Use Case ID: UC10
+Use Case Name: Enrollment & waitlist Report
+Relevant Requirements:
+Course enrollment data
+Primary Actor:
+Supervisor(Admin)
+Pre-conditions:
+The Supervisor is already logged in to the system.
+Enrollment data exists. 
+Post-conditions:
+The report is displayed on the screen.
+The supervisor can export the report.
+Basic Flow or Main Scenario:
+1)      	The supervisor logged in to the system and went to the report module. 
+2) 	The target course has been selected.
+3)     The system gathers information.
+4)     Report display on the screen.
+5) 	The supervisor can export the report.
+
+Extensions or Alternate Flows:
+If the supervisor exports the report, the report will be in pdf format.
+If the supervisor didn’t choose any course, the system will prompt the supervisor to choose at least one course.
+If there is no student in the waiting list, the report still shows a waiting list with 0.
+Exceptions:
+If the system can’t access the enrollment data, the system will display the error message and record the error.
+Related Use Cases:
+UC02 Manage User Login 
+UC03 Course Enrollment
+UC04 Course Course Drop
+UC05 Course Waitlist
+----------------------------------------------------------------------------
+Use Case ID: UC11
+Use Case Name: Real Time Report Update
+Relevant Requirements:
+The system should update immediately after students make an action.
+Primary Actor:
+Report module
+Pre-conditions:
+The server is online and the system is running normally.
+At least one student made an action.
+Post-conditions:
+Report module update immediately to display the latest status.
+Student’s schedule updates immediately. 
+Basic Flow or Main Scenario:
+1)        the student logging in to the system.
+2) 	Students make an enrollment action(add, drop and waiting list).
+3)     System record the transaction(student ID, Course number and timestamp)
+4) 	The reporting module updates the enrollment and waitlist status.
+Extensions or Alternate Flows:
+If more	than one enrollment action made at same time, the system will group them and update together.
+If the update takes a long time, we will display a “loading…” message until the update is finished.
+Exceptions:
+If the Report module can’t reach enrollment data, the page keeps the last known information and displays an error message ”System is temporarily unavailable”. 
+Related Use Cases:
+UC02 User Login
+UC03 Course Enrollment
+UC04 Course Drop
+UC05 Course Waitlist
+UC10 Enrollment & Waitlist Report
+
 
  
  
