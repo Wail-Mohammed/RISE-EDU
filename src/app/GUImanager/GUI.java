@@ -8,3 +8,6 @@ public class Testing {
 public class Testing2 {
 	
 }
+public class Test{
+	
+}
