@@ -4,3 +4,7 @@ public class Testing {
 
 }
 
+// Test
+public class Testing2 {
+	
+}
