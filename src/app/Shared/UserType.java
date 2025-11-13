@@ -1,5 +1,5 @@
 package app.Shared;
 
 public enum UserType {
-	ADMIN, STUDENT, OFFICER
+	ADMIN, STUDENT, OFFICER, INSTRUCTOR
 }
