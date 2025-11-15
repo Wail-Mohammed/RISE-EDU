@@ -1,13 +1,14 @@
 package app.GUImanager;
 
-public class Testing {
+import SystemManager.SystemManager;
 
-}
+public final class GUI {
 
-// Test
-public class Testing2 {
+	private GUI() {
+	}
 	
-}
-public class Test{
-	
+	public static void main(String[] args) {
+		SystemManager systemManager = new SystemManager();
+		LoginPage.launch(systemManager);
+	}
 }
