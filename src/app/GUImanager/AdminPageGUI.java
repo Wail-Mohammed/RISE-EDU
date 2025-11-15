@@ -1,191 +1,92 @@
 package app.GUImanager;
 
-import javax.swing.JOptionPane;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.GridLayout;
 
-import SystemManager.SystemManager;
-import User.Administrator;
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.SwingConstants;
 
 /**
- * Administrator menu page using JOptionPane dialogs.
- *
- * Basic Flow – Administrator Menu:
-    The system displays the Administrator Menu, showing the following options:
-
-        Create Course:
-
-        Edit Course:        
-
-        Generate Enrollment Report:
-
-        Manage Student Hold:
-
-        Update Changes Report:  
-
-        Logout:
-
-    The administrator selects one of the available actions.
-
+ * Administrator menu page using Swing windows instead of dialogs.
+ * This matches the mockup with six large blue buttons for each admin task.
  */
-public class AdminPageGUI {
+public class AdminPageGUI extends JFrame {
 
-	private final SystemManager systemManager;
-	private final Administrator admin;
+	private static final long serialVersionUID = 1L;
+	private static final Color BACKGROUND = new Color(230, 230, 230);
+	private static final Color PRIMARY_BUTTON = new Color(100, 170, 255);
+	private final String welcomeMessage;
 
-	public AdminPageGUI(SystemManager systemManager, Administrator admin) {
-		this.systemManager = systemManager;
-		this.admin = admin;
+	//this is the constructor we call after admin login so the dashboard shows up
+	public AdminPageGUI(String welcomeMessage) {
+		super("Administrator Dashboard");
+		this.welcomeMessage = welcomeMessage;
+		initializeFrame();
 	}
 
-	/**
-	 * Main menu loop for administrator actions.
-	 */
-	public void processCommands() {
-
-		String[] options = {
-				"Create Course",
-				"Edit Course",
-				"Generate Enrollment Report",
-				"Manage Student Hold",
-				"Update Changes Report",
-				"Logout"
-		};
-
-		int choice;
-
-		do {
-			choice = JOptionPane.showOptionDialog(
-					null,
-					"Welcome, Admin " + admin.getUsername()
-							+ "\nSelect an action:",
-					"Administrator Menu",
-					JOptionPane.DEFAULT_OPTION,
-					JOptionPane.PLAIN_MESSAGE,
-					null,
-					options,
-					options[0]
-			);
-
-			switch (choice) {
-			case 0 -> doCreateCourse();
-			case 1 -> doEditCourse();
-			case 2 -> doGenerateReport();
-			case 3 -> doManageHold();
-			case 4 -> doUpdateChangesReport();
-			default -> { /* do nothing */ }
-			}
-
-		} while (choice != 5); // "Logout"
-
-		JOptionPane.showMessageDialog(null, "You have logged out.");
+	//this is the frame setup so the admin sees a full window with big buttons
+	private void initializeFrame() {
+		setSize(900, 500);
+		setLocationRelativeTo(null);
+		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		getContentPane().setBackground(BACKGROUND);
+		getContentPane().setLayout(new BorderLayout());
+		add(buildContent(), BorderLayout.CENTER);
 	}
 
-	private void doCreateCourse() {
+	//this is the layout that arranges the title and six action buttons
+	private JPanel buildContent() {
+		JPanel wrapper = new JPanel(new BorderLayout());
+		wrapper.setOpaque(false);
+		wrapper.setBorder(BorderFactory.createEmptyBorder(40, 60, 60, 60));
 
-		String id = JOptionPane.showInputDialog("Enter Course ID:");
-		if (id == null || id.isBlank())
-			return;
+		//this is the welcome label that mimics the mockup header
+		JLabel title = new JLabel(welcomeMessage, SwingConstants.CENTER);
+		title.setFont(title.getFont().deriveFont(Font.BOLD, 28f));
+		wrapper.add(title, BorderLayout.NORTH);
 
-		String title = JOptionPane.showInputDialog("Enter Course Title:");
-		// allow blank? text says return if blank
-		if (title == null || title.isBlank())
-			return;
+		//this is the 2x3 grid that spaces the six admin shortcuts
+		JPanel grid = new JPanel(new GridLayout(2, 3, 20, 20));
+		grid.setOpaque(false);
+		grid.add(createActionButton("Create a course"));
+		grid.add(createActionButton("Edit a course"));
+		grid.add(createActionButton("Delete a course"));
+		grid.add(createActionButton("Generate report"));
+		grid.add(createActionButton("View students schedules"));
+		grid.add(createActionButton("Student holds"));
 
-		String instructor = JOptionPane.showInputDialog("Enter Instructor Name:");
-		if (instructor == null || instructor.isBlank())
-			return;
+		wrapper.add(grid, BorderLayout.CENTER);
+		return wrapper;
+	}
 
-		String capacity = JOptionPane.showInputDialog("Enter Class Size / Capacity:");
-		if (capacity == null || capacity.isBlank())
-			return;
+	//this is the helper that styles each blue admin button
+	private JButton createActionButton(String label) {
+		JButton button = new JButton(label);
+		button.setPreferredSize(new Dimension(200, 120));
+		button.setBackground(PRIMARY_BUTTON);
+		button.setForeground(Color.BLACK);
+		button.setFont(button.getFont().deriveFont(Font.BOLD, 16f));
+		button.setFocusPainted(false);
+		button.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+		button.setOpaque(true);
+		button.addActionListener(e -> showComingSoon(label));
+		return button;
+	}
 
-		String result = systemManager.createCourse(
-				id.trim(), title.trim(), instructor.trim(), capacity.trim()
-		);
-
+	//this is the placeholder until SystemManager is wired up
+	private void showComingSoon(String action) {
 		JOptionPane.showMessageDialog(
-				null,
-				result,
-				"Create Course Result",
-				JOptionPane.INFORMATION_MESSAGE
-		);
-	}
-
-	private void doEditCourse() {
-		String id = JOptionPane.showInputDialog("Enter Course ID to edit:");
-		if (id == null || id.isBlank())
-			return;
-
-		String newTitle = JOptionPane.showInputDialog("New Title (leave empty to skip):");
-		if (newTitle == null)
-			return;
-
-		String newInstructor = JOptionPane.showInputDialog("New Instructor (leave empty to skip):");
-		if (newInstructor == null)
-			return;
-
-		String newCap = JOptionPane.showInputDialog("New Capacity (leave empty to skip):");
-		if (newCap == null)
-			return;
-
-		String result = systemManager.editCourse(
-				id.trim(),
-				newTitle.trim(),
-				newInstructor.trim(),
-				newCap.trim()
-		);
-
-		JOptionPane.showMessageDialog(
-				null,
-				result,
-				"Edit Course Result",
-				JOptionPane.INFORMATION_MESSAGE
-		);
-	}
-
-	private void doGenerateReport() {
-		String report = systemManager.generateEnrollmentReport();
-
-		JOptionPane.showMessageDialog(
-				null,
-				report,
-				"Enrollment Report",
-				JOptionPane.INFORMATION_MESSAGE
-		);
-	}
-
-	private void doManageHold() {
-		String student = JOptionPane.showInputDialog("Enter Student Username:");
-		if (student == null || student.isBlank())
-			return;
-
-		String[] holdActions = {"Add Hold", "Remove Hold", "Cancel"};
-		int action = JOptionPane.showOptionDialog(
-				null,
-				"Manage Hold for " + student.trim(),
-				"Hold Management",
-				JOptionPane.DEFAULT_OPTION,
-				JOptionPane.PLAIN_MESSAGE,
-				null,
-				holdActions,
-				holdActions[0]
-		);
-
-		if (action == 0) {
-			String result = systemManager.addHold(student.trim());
-			JOptionPane.showMessageDialog(null, result);
-		} else if (action == 1) {
-			String result = systemManager.removeHold(student.trim());
-			JOptionPane.showMessageDialog(null, result);
-		}
-	}
-
-	private void doUpdateChangesReport() {
-		String result = systemManager.updateChangesReport();
-
-		JOptionPane.showMessageDialog(
-				null,
-				result,
-				"Changes Report",
+				this,
+				action + " will be connected to the SystemManager in a later phase.",
+				"Feature placeholder",
 				JOptionPane.INFORMATION_MESSAGE
 		);
 	}
