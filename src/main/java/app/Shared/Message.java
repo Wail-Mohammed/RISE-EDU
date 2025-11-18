@@ -1,17 +1,20 @@
 package app.Shared;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 
 public class Message implements Serializable {
     protected final Type messageType;
     protected Status status;
     protected UserType userType;
     protected String text;
+    protected ArrayList<String> list;
 
     public Message(){
         this.messageType = null;
         this.status = null;
         this.text = "Undefined";
+        this.list = new ArrayList<>();
     }
     
     public Message(Type messageType, Status status, UserType userType, String text) {
@@ -19,12 +22,14 @@ public class Message implements Serializable {
     	this.status = status;
     	this.userType = userType;
     	this.text = text;
+    	this.list = new ArrayList<>();
     }
 
     public Message(Type type, Status status, String text){
         this.messageType = type;
         this.status = status;
         this.text = text;
+        this.list = new ArrayList<>();
     }
     
     public Message(Type type, Status status, String text, ArrayList<String> list){
@@ -48,5 +53,8 @@ public class Message implements Serializable {
 
     public String getText(){
     	return text;
+    }
+    public ArrayList<String> getList() {
+        return list;
     }
 }
