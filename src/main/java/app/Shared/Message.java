@@ -10,13 +10,14 @@ public class Message implements Serializable {
     protected String text;
     protected ArrayList<String> list;
 
+    //default constructor
     public Message(){
         this.messageType = null;
         this.status = null;
         this.text = "Undefined";
         this.list = new ArrayList<>();
     }
-    
+    //constructor for login responses
     public Message(Type messageType, Status status, UserType userType, String text) {
     	this.messageType = messageType;
     	this.status = status;
@@ -25,6 +26,7 @@ public class Message implements Serializable {
     	this.list = new ArrayList<>();
     }
 
+    //constructor for sending/receiving status updates
     public Message(Type type, Status status, String text){
         this.messageType = type;
         this.status = status;
@@ -32,6 +34,7 @@ public class Message implements Serializable {
         this.list = new ArrayList<>();
     }
     
+    // constructor for sending lists of courses or login details
     public Message(Type type, Status status, String text, ArrayList<String> list){
         this.messageType = type;
         this.status = status;
