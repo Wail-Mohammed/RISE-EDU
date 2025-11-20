@@ -12,11 +12,10 @@ public class DataManager {
     private String enrollmentLogPath;
 
     // Constructor:
-    public DataManager(String userPath, String coursePath, String logPath) {
-        this.userFilePath = userPath;
-        this.courseFilePath = coursePath;
-        this.enrollmentLogPath = logPath;
-    }
+	public SystemManager(String userFilePath, String courseFilePath, String logFilePath) {
+	     this.dataManager = new DataManager(userFilePath, courseFilePath, logFilePath);
+	     this.universities = new ArrayList<>();
+	 }
 
     // University Loading / Saving
     public List<University> loadUniversities() {
