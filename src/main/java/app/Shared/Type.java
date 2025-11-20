@@ -19,6 +19,9 @@ public enum Type {
     EDIT_COURSE,
     REMOVE_COURSE,
     VIEW_STUDENTS,
+    VIEW_SCHEDULE,        // student view their own schedule
+    VIEW_STUDENT_SCHEDULE, // admin view a student's schedule
+    REPORT,
     ADD_HOLD,
     REMOVE_HOLD
 }
