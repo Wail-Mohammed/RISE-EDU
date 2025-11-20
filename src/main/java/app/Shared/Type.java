@@ -15,5 +15,7 @@ public enum Type {
     CLEAR_HOLD,
     REMOVE_HOLD,
     VIEW_STUDENTS,
+    VIEW_SCHEDULE,        // student view their own schedule
+    VIEW_STUDENT_SCHEDULE, // admin view a student's schedule
     REPORT,
 }

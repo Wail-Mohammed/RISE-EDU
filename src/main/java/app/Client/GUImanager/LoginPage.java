@@ -273,7 +273,7 @@ public class LoginPage extends JFrame {
      * Open the admin menu window.
      */
     private void openAdminMenu(String username) {
-        AdminPageGUI adminPage = new AdminPageGUI("Welcome " + username + "!");
+        AdminPageGUI adminPage = new AdminPageGUI("Welcome " + username + "!", systemManager);
         adminPage.setVisible(true);
     }
 
