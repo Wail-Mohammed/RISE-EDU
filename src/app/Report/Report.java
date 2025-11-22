@@ -13,7 +13,7 @@ public class Report {
     // Constructor 
     public Report(String reportType) {
         this.reportType = reportType;
-        this.generatedDate = new Date(); // sets current date
+        this.generatedDate = new Date();
         this.reportID = generateReportID();
         this.reportData = "";
     }

@@ -54,9 +54,11 @@ public class DataManager {
 
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
             String line;
+            boolean header = true;//flag to skip the first header line from being read as user
             while ((line = reader.readLine()) != null) {
                 String[] parts = line.split(",");
-                // Format: type,username,password,firstname,lastname,id(S0001 format for students or A0001 for admins)
+                // Format: type,username,password,firstname,lastname,id(S0001 format for students or A0001 for admins), we are skipping the header line
+                if (header) { header = false; continue; } 
                 if (parts.length < 6) continue;
 
                 String type = parts[0];
@@ -147,6 +149,7 @@ public class DataManager {
     
     private void saveUsers(University university) {
         try (PrintWriter writer = new PrintWriter(new FileWriter(USERS_FILE))) {
+        	writer.println("User-Type,Username,Password,FirstName,LastName,ID"); // for our user header
             for (User u : university.getAllUsers()) {
                 String type = (u.getUserType() == UserType.STUDENT) ? "STUDENT" : "ADMIN";
                 String id = (u.getUserType() == UserType.STUDENT) 
