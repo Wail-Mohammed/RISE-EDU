@@ -135,8 +135,7 @@ public class DataManager {
                 // Link them
                 if (s != null && c != null) {
                     s.getSchedule().addCourse(c);
-                    // Note: Course object tracks enrollment count via integer, 
-                    // but if you add a list of students to Course, add it here.
+                    c.enrollStudent(s.getUsername()); 
                 }
             }
         } catch (IOException e) {
