@@ -9,6 +9,8 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.IOException;
+import java.util.ArrayList;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -23,7 +25,11 @@ import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 
-import SystemManager.SystemManager;
+import app.Client.Client;
+import app.Shared.Message;
+import app.Shared.Status;
+import app.Shared.Type;
+import app.Shared.UserType;
 
 /*
  * LoginPage is the first window the user sees when starting our RISE-EDU program. The main job of this class is very simple: show a login screen where the user
@@ -55,8 +61,7 @@ public class LoginPage extends JFrame {
     // This is the color of our "Go" button
     private static final Color PRIMARY_BUTTON = new Color(100, 170, 255);
 
-    // We keep a reference to SystemManager so later we can call real login methods.
-    private SystemManager systemManager;
+    private Client client;
 
     // Simple text fields for username and password input.
     // We use width 20 which is way enough for username/password length.
@@ -69,21 +74,19 @@ public class LoginPage extends JFrame {
     /*
      * Constructor for LoginPage.
      * Here we:
-     *  - store the SystemManager reference,
-     *  - call intializeSystem() so the backend side is ready,
+     *  - store the Client reference,
+     *  - ensure the backend is reachable via socket,
      *  - and then set up the frame and event listeners.
      *
      * We also set the window title to "RISE-EDU Login" so the user knows
      * where they are in the application.
      */
-    public LoginPage(SystemManager systemManager) {
+    public LoginPage(Client client) {
         super("RISE-EDU Login");
-        this.systemManager = systemManager;
-
+        this.client = client;
         // In our design, SystemManager is responsible for reading data files
         // We call this here so that when we actually connect login logic,
         // the system is already initialized.
-        this.systemManager.intializeSystem();
 
         initializeFrame();
         registerListeners();
@@ -224,18 +227,7 @@ public class LoginPage extends JFrame {
         passwordField.addActionListener(loginAction);
     }
 
-    /*
-     * This is the main logic that runs when the user tries to log in.
-     *
-     * Steps:
-     *  1. Read the text from the username and password fields.
-     *  2. Check that both are not empty (basic validation).
-     *  3. For now, show an info message explaining that the real login
-     *     will be added later.
-     *  4. Use a very simple rule to decide which page to open:
-     *        - if username is "admin", open admin menu;
-     *        - otherwise, open student menu.
-     */
+
     private void handleLogin() {
         String username = usernameField.getText().trim();
         String password = new String(passwordField.getPassword());
@@ -247,11 +239,31 @@ public class LoginPage extends JFrame {
             return;
         }
 
-        // For now we just show a message and use a very simple rule:
-        // if username is "admin" -> open admin menu, otherwise student menu.
+        Message response = null;
+        try {
+            response = sendLoginRequest(username, password);
+        } catch (IOException | ClassNotFoundException e) {
+            showInformation("Server login failed: " + e.getMessage() +
+                    "\nFalling back to local demo.");
+        }
+
+        if (response != null && response.getStatus() == Status.SUCCESS) {
+            UserType userType = response.getUserType();
+            if (userType == UserType.ADMIN) {
+                openAdminMenu(username);
+            } else {
+                openStudentMenu(username);
+            }
+            return;
+        }
+
+        if (response != null) {
+            showValidationError(response.getText());
+            return;
+        }
+
         showInformation(
-            "Login flow will be integrated with SystemManager in a later phase.\n" +
-            "Currently this is just a demo using a simple role check."
+            "connection failed\n" 
         );
 
         if (username.equalsIgnoreCase("admin")) {
@@ -265,7 +277,7 @@ public class LoginPage extends JFrame {
      * Open the student menu window.
      */
     private void openStudentMenu(String username) {
-        StudentPageGUI studentPage = new StudentPageGUI("Welcome " + username + "!");
+        StudentPageGUI studentPage = new StudentPageGUI("Welcome " + username + "!", username, client);
         studentPage.setVisible(true);
     }
 
@@ -273,7 +285,7 @@ public class LoginPage extends JFrame {
      * Open the admin menu window.
      */
     private void openAdminMenu(String username) {
-        AdminPageGUI adminPage = new AdminPageGUI("Welcome " + username + "!", systemManager);
+        AdminPageGUI adminPage = new AdminPageGUI("Welcome " + username + "!", client);
         adminPage.setVisible(true);
     }
 
@@ -313,8 +325,16 @@ public class LoginPage extends JFrame {
      * This is mainly used by GUI.java so it doesn't have to know
      * all the details of how LoginPage is constructed.
      */
-    public static void launch(SystemManager systemManager) {
-        LoginPage loginPage = new LoginPage(systemManager);
+    public static void launch(Client client) {
+        LoginPage loginPage = new LoginPage(client);
         loginPage.start();
+    }
+
+    private Message sendLoginRequest(String username, String password) throws IOException, ClassNotFoundException {
+        ArrayList<String> payload = new ArrayList<>();
+        payload.add(username);
+        payload.add(password);
+        Message request = new Message(Type.LOGIN, Status.NULL, "", payload);
+        return client.send(request);
     }
 }

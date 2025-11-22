@@ -5,6 +5,8 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridLayout;
+import java.io.IOException;
+import java.util.ArrayList;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -13,6 +15,11 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
+
+import app.Client.Client;
+import app.Shared.Message;
+import app.Shared.Status;
+import app.Shared.Type;
 
 /*
  * StudentPageGUI is the page for a student after they log in.
@@ -40,14 +47,25 @@ public class StudentPageGUI extends JFrame {
     private JButton dropCourseButton;
     private JButton viewScheduleButton;
     private JButton viewCoursesButton;
+    private Client client;
+    private final String welcomeMessage;
+    private final String studentId;
+
+    private static final String DEFAULT_WELCOME = "Welcome student!";
+    private static final String UNKNOWN_STUDENT = "unknown";
 
     /*
      * Constructor: this should be called after the student logs in.
      * The welcomeMessage parameter used to display the student's name,
      * but for now we just show a title.
      */
-    public StudentPageGUI(String welcomeMessage) {
-        super("Welcome student!");
+    public StudentPageGUI(String welcomeMessage, String studentId, Client client) {
+        super("Student Dashboard");
+        this.welcomeMessage = (welcomeMessage == null || welcomeMessage.isBlank())
+                ? DEFAULT_WELCOME
+                : welcomeMessage;
+        this.studentId = (studentId == null || studentId.isBlank()) ? UNKNOWN_STUDENT : studentId;
+        this.client = client;
         initializeFrame();
     }
 
@@ -82,7 +100,7 @@ public class StudentPageGUI extends JFrame {
         wrapper.setBorder(BorderFactory.createEmptyBorder(40, 80, 60, 80));
 
         // Big title label at the top of the window.
-        JLabel title = new JLabel("Welcome student!", SwingConstants.CENTER);
+        JLabel title = new JLabel(welcomeMessage, SwingConstants.CENTER);
         title.setFont(title.getFont().deriveFont(Font.BOLD, 32f));
         wrapper.add(title, BorderLayout.NORTH);
 
@@ -138,11 +156,8 @@ public class StudentPageGUI extends JFrame {
     }
 
     /*
-     * Placeholder for the "add course" feature.
-     * Right now, we show an input dialog asking the student for a Course ID.
-     * Later, this method should call something like:
-     *   systemManager.enrollStudent(studentId, courseId)
-     * and then update the schedule.
+     * Ask the student for a Course ID, send an ENROLL_COURSE request
+     * through the client, and show the server response.
      */
     private void addCourse() {
         String courseId = JOptionPane.showInputDialog(
@@ -152,22 +167,34 @@ public class StudentPageGUI extends JFrame {
                 JOptionPane.QUESTION_MESSAGE
         );
 
-        // If the user pressed Cancel or left it blank, we simply do nothing.
         if (courseId == null || courseId.isBlank()) {
             return;
         }
 
-        JOptionPane.showMessageDialog(
-                this,
-                "Enroll flow will use SystemManager once integrated.\nInput recorded for: " + courseId.trim(),
-                "Enroll Course",
-                JOptionPane.INFORMATION_MESSAGE
-        );
+        String trimmed = courseId.trim();
+        Message response = sendRequest(Type.ENROLL_COURSE, trimmed);
+        if (response == null) {
+            return;
+        }
+
+        if (response.getStatus() == Status.SUCCESS) {
+            String message = response.getText();
+            if (message == null || message.isBlank()) {
+                message = "Successfully enrolled in " + trimmed;
+            }
+            JOptionPane.showMessageDialog(
+                    this,
+                    message,
+                    "Enroll Course",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+        } else {
+            showServerError(response.getText());
+        }
     }
 
     /*
-     * Placeholder for the "drop course" feature.
-     * Similar to addCourse(), but used for dropping an existing course.
+     * Ask for a Course ID and send DROP_COURSE request to the server.
      */
     private void dropCourse() {
         String courseId = JOptionPane.showInputDialog(
@@ -181,39 +208,105 @@ public class StudentPageGUI extends JFrame {
             return;
         }
 
-        JOptionPane.showMessageDialog(
-                this,
-                "Drop flow will use SystemManager once integrated.\nInput recorded for: " + courseId.trim(),
-                "Drop Course",
-                JOptionPane.INFORMATION_MESSAGE
-        );
+        String trimmed = courseId.trim();
+        Message response = sendRequest(Type.DROP_COURSE, trimmed);
+        if (response == null) {
+            return;
+        }
+
+        if (response.getStatus() == Status.SUCCESS) {
+            String message = response.getText();
+            if (message == null || message.isBlank()) {
+                message = "Successfully dropped " + trimmed;
+            }
+            JOptionPane.showMessageDialog(
+                    this,
+                    message,
+                    "Drop Course",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+        } else {
+            showServerError(response.getText());
+        }
     }
 
     /*
-     * Placeholder for viewing the student's schedule.
-     * Right now we just tell the user that this will be connected later.
-     * After we implement viewSchedule in SystemManager, this method should
-     * ask SystemManager for the list of enrolled courses and show them.
+     * Send VIEW_SCHEDULE request and display whatever the server returns.
      */
     private void viewSchedule() {
-        JOptionPane.showMessageDialog(
-                this,
-                "Schedule view will be connected to SystemManager in a later phase.",
-                "Your Schedule",
-                JOptionPane.INFORMATION_MESSAGE
-        );
+        Message response = sendRequest(Type.VIEW_SCHEDULE, "");
+        if (response == null) {
+            return;
+        }
+
+        if (response.getStatus() == Status.SUCCESS) {
+            String text = response.getText();
+            if (text == null || text.isBlank()) {
+                text = "Schedule not available yet.";
+            }
+            JOptionPane.showMessageDialog(
+                    this,
+                    text,
+                    "Your Schedule",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+        } else {
+            showServerError(response.getText());
+        }
     }
 
     /*
-     * Placeholder for viewing the course catalog.
-     * Later, this will probably show all courses from the Course.csv file.
+     * Send LIST_COURSES request and display the catalog text returned by server.
      */
     private void viewCourses() {
+        Message response = sendRequest(Type.LIST_COURSES, "");
+        if (response == null) {
+            return;
+        }
+
+        if (response.getStatus() == Status.SUCCESS) {
+            String text = response.getText();
+            if (text == null || text.isBlank()) {
+                text = "Course catalog will be available soon.";
+            }
+            JOptionPane.showMessageDialog(
+                    this,
+                    text,
+                    "Available Courses",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+        } else {
+            showServerError(response.getText());
+        }
+    }
+
+    private Message sendRequest(Type type, String text) {
+        if (client == null) {
+            showServerError("Client is not initialized; unable to reach the server.");
+            return null;
+        }
+
+        try {
+            ArrayList<String> payload = new ArrayList<>();
+            payload.add(studentId);
+            payload.add(text == null ? "" : text);
+            Message request = new Message(type, Status.NULL, "", payload);
+            return client.send(request);
+        } catch (IOException | ClassNotFoundException e) {
+            showServerError("Unable to reach server: " + e.getMessage());
+            return null;
+        }
+    }
+
+    private void showServerError(String message) {
+        String display = (message == null || message.isBlank())
+                ? "Server returned an unknown error."
+                : message;
         JOptionPane.showMessageDialog(
                 this,
-                "Course catalog will be connected to SystemManager in a later phase.",
-                "Available Courses",
-                JOptionPane.INFORMATION_MESSAGE
+                display,
+                "Server Error",
+                JOptionPane.ERROR_MESSAGE
         );
     }
 }

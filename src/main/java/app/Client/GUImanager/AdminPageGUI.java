@@ -14,7 +14,8 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 
-import SystemManager.SystemManager;
+import app.Client.Client;
+import app.Server.SystemManager.SystemManager;
 import app.models.Course;
 
 /*
@@ -48,6 +49,7 @@ public class AdminPageGUI extends JFrame {
 
     // SystemManager reference for business logic
     private SystemManager systemManager;
+    private Client client;
 
     /*
      * Constructor: this should be called right after the admin logs in.
@@ -55,9 +57,18 @@ public class AdminPageGUI extends JFrame {
      * "Welcome Alice (Admin)".
      */
     public AdminPageGUI(String welcomeMessage, SystemManager systemManager) {
+        this(welcomeMessage, systemManager, null);
+    }
+
+    public AdminPageGUI(String welcomeMessage, Client client) {
+        this(welcomeMessage, new SystemManager(), client);
+    }
+
+    private AdminPageGUI(String welcomeMessage, SystemManager systemManager, Client client) {
         super("Administrator Dashboard");
         this.welcomeMessage = welcomeMessage;
         this.systemManager = systemManager;
+        this.client = client;
         initializeFrame();
     }
 
