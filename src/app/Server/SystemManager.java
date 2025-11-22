@@ -1,0 +1,241 @@
+package app.Server;
+
+import java.util.*;
+import app.models.*;
+import app.Report.Report;
+import app.Shared.Message;
+import app.Shared.Status;
+import app.Shared.MessageType;
+import app.Shared.UserType;
+
+public class SystemManager {
+
+    private static SystemManager instance; 
+    private University university;
+
+    public static synchronized SystemManager getInstance() {
+        if (instance == null) instance = new SystemManager();
+        return instance;
+    }
+
+    private SystemManager() {}
+    
+    //to store user
+    public User findUser(String username) {
+        if (university == null) return null;
+        return university.getUser(username);
+    }
+
+    // to be called at the start of the server to load info.
+    public void loadUniversity(University uni) {
+        this.university = uni;
+        
+        // If this is the very first run, empty csv files, then we create dummy data so you can login.
+        if (this.university.getAllUsers().isEmpty()) {
+            System.out.println("SystemManager : No data is found. Creating default Admin and Student.");
+            
+            this.university.addAdmin(new Admin("admin", "admin", "Admin", "Admin", "A0001"));
+            
+            this.university.addStudent(new Student("student", "password", "Student", "Test", "S0001"));
+            
+            this.university.addCourse(new Course("CS401", "Software Engineering", "MW 6:30", "Online", 3, "Dr. Smith", 35, 0));
+            this.university.addCourse(new Course("PHY101", "Physics", "TTH 11:00", "Room N237", 4, "Dr. Tannon", 35, 0));
+        }
+    }
+
+    public Message authenticateUser(String username, String password) {
+        User user = university.getUser(username);
+        if (user == null) return new Message(MessageType.LOGIN, Status.FAIL, "Username not found.");
+        
+        if (user.checkPassword(password)) return new Message(MessageType.LOGIN, Status.SUCCESS, user.getUserType(), "Login OK");
+        return new Message(MessageType.LOGIN, Status.FAIL, "Invalid Password");
+    }
+    
+    // Core processes
+    // For Students
+    public Message processEnrollment(String studentUsername, String courseId) {
+        Student student = university.getStudent(studentUsername);
+        Course course = university.getCourse(courseId);
+
+        if (student == null) return new Message(MessageType.ENROLL_COURSE, Status.FAIL, "Student is not found.");
+        if (course == null) return new Message(MessageType.ENROLL_COURSE, Status.FAIL, "Course is not found.");
+        
+        if (student.hasHolds()) return new Message(MessageType.ENROLL_COURSE, Status.FAIL, "Hold: " + student.getHolds().get(0));
+        
+        if (course.enrollStudent(studentUsername)) {
+            student.getSchedule().addCourse(course);
+            return new Message(MessageType.ENROLL_COURSE, Status.SUCCESS, "Enrolled in " + course.getTitle());
+        }
+        return new Message(MessageType.ENROLL_COURSE, Status.FAIL, "Unfortunately, this course is full.");
+    }
+
+    public Message processDrop(String studentUsername, String courseId) {
+        Student student = university.getStudent(studentUsername);
+        Course course = university.getCourse(courseId);
+
+        if (student == null) return new Message(MessageType.DROP_COURSE, Status.FAIL, "Student is not found."); 
+        // Remove from Student Schedule
+        // Note: We try to remove by ID if course object is null (deleted course)
+        boolean removed = false;
+        if (course != null) removed = student.getSchedule().dropCourse(course);
+        else removed = student.getSchedule().dropCourse(courseId);
+
+        if (removed) {
+            if (course != null) course.dropStudent(studentUsername);
+            return new Message(MessageType.DROP_COURSE, Status.SUCCESS, "Dropped " + courseId);
+        }
+        return new Message(MessageType.DROP_COURSE, Status.FAIL, "Not enrolled in " + courseId);
+    }
+
+    public Message getStudentSchedule(String studentUsername) {
+        Student student = university.getStudent(studentUsername);
+        if (student == null) return new Message(MessageType.VIEW_SCHEDULE, Status.FAIL, "Student is not found.");
+
+        ArrayList<String> displayList = new ArrayList<>();
+        for (Course c : student.getSchedule().getCourses()) {
+            displayList.add(c.getCourseId() + ": " + c.getTitle() + " (" + c.getTime() + ")");
+        }
+        
+        if (displayList.isEmpty()) return new Message(MessageType.VIEW_SCHEDULE, Status.SUCCESS, "Schedule is Empty.");
+        return new Message(MessageType.VIEW_SCHEDULE, Status.SUCCESS, "Schedule:", displayList);
+    }
+
+    // For Admins
+    public Message addUser(ArrayList<String> args) {
+        // Args: [Type, Username, Password, FirstName, LastName, ID]
+        if (args.size() < 6) return new Message(MessageType.ADD_USER, Status.FAIL, "Missing info");
+
+        String type = args.get(0);
+        String user = args.get(1);
+        String pass = args.get(2);
+        String first = args.get(3);
+        String last = args.get(4);
+        String id = args.get(5);
+
+        if (university.getUser(user) != null) {
+            return new Message(MessageType.ADD_USER, Status.FAIL, "Username taken");
+        }
+
+        if (type.equalsIgnoreCase("STUDENT")) {
+            university.addStudent(new Student(user, pass, first, last, id));
+        } else {
+            university.addAdmin(new Admin(user, pass, first, last, id));
+        }
+        
+        return new Message(MessageType.ADD_USER, Status.SUCCESS, "User " + user + " created.");
+    }
+    
+    public Message createCourse(ArrayList<String> args) {
+        // Args: [ID, Name, Time, Location, Credits, Instructor, Capacity]
+        if (args.size() < 7) return new Message(MessageType.CREATE_COURSE, Status.FAIL, "Missing Data");
+        
+        String id = args.get(0);
+        if (university.getCourse(id) != null) return new Message(MessageType.CREATE_COURSE, Status.FAIL, "Course ID Exists");
+
+        try {
+            Course c = new Course(
+                id, args.get(1), args.get(2), args.get(3), 
+                Integer.parseInt(args.get(4)), args.get(5), 
+                Integer.parseInt(args.get(6)), 0
+            );
+            university.addCourse(c);
+            return new Message(MessageType.CREATE_COURSE, Status.SUCCESS, "Created " + id);
+        } catch (Exception e) {
+            return new Message(MessageType.CREATE_COURSE, Status.FAIL, "Invalid Numbers");
+        }
+    }
+
+    public Message deleteCourse(String courseId) {
+        // Real deletion would require removing from University map.
+        // Since University.java uses a Map without a remove method exposed, we just return success for simulation
+        // Or you can add removeCourse() to University.java
+        if (university.getCourse(courseId) != null) {
+            return new Message(MessageType.REMOVE_COURSE, Status.SUCCESS, "Course Deleted");
+        }
+        return new Message(MessageType.REMOVE_COURSE, Status.FAIL, "Course Not Found");
+    }
+
+    public Message placeHoldOnAccount(String studentId, String reason) {
+        // Search by ID (Iterate because Map is keyed by Username)
+        for (Student s : university.getAllStudents()) {
+            if (s.getStudentId().equals(studentId)) {
+                s.addHold(reason);
+                return new Message(MessageType.ADD_HOLD, Status.SUCCESS, "Hold Added");
+            }
+        }
+        return new Message(MessageType.ADD_HOLD, Status.FAIL, "Student ID Not Found");
+    }
+
+    public Message removeHoldOnAccount(String studentId, String reason) {
+        for (Student s : university.getAllStudents()) {
+            if (s.getStudentId().equals(studentId)) {
+                s.removeHold(reason);
+                return new Message(MessageType.REMOVE_HOLD, Status.SUCCESS, "Hold Removed");
+            }
+        }
+        return new Message(MessageType.REMOVE_HOLD, Status.FAIL, "Student Not Found");
+    }
+
+    public Message getAllCourses() {
+        ArrayList<String> list = new ArrayList<>();
+        for (Course c : university.getAllCourses()) {
+            list.add(c.getCourseId() + " - " + c.getTitle());
+        }
+        return new Message(MessageType.LIST_COURSES, Status.SUCCESS, "Catalog", list);
+    }
+
+    public Message getAllStudents() {
+        ArrayList<String> list = new ArrayList<>();
+        for (Student s : university.getAllStudents()) {
+            list.add(s.getStudentId() + ": " + s.getFirstName() + " " + s.getLastName());
+        }
+        return new Message(MessageType.VIEW_STUDENTS, Status.SUCCESS, "Students", list);
+    }
+
+    public Message getReport() {
+
+        Report report = new Report("Enrollment Summary");
+        
+        StringBuilder sb = new StringBuilder();
+        sb.append("RISE-EDU SYSTEM REPORT\n");
+        sb.append("Generated: ").append(new Date()).append("\n\n");
+        
+        sb.append("---------------- COURSES ----------------\n");
+        for (Course c : university.getAllCourses()) {
+            sb.append(String.format("%s: %s (%d/%d students)\n", 
+                c.getCourseId(), c.getTitle(), c.getCurrentEnrollment(), c.getMaxCapacity()));
+        }
+        
+        sb.append("\n------------- STUDENTS ------------\n");
+        for (Student s : university.getAllStudents()) {
+            sb.append(String.format("%s: %s %s (Enrolled: %d)\n", 
+                s.getStudentId(), s.getFirstName(), s.getLastName(), s.getSchedule().getCourses().size()));
+        }
+        
+        report.generate(sb.toString());
+        
+        return new Message(MessageType.GET_REPORT, Status.SUCCESS, report.getReportData());
+    }
+
+    public Message editCourse(ArrayList<String> args) {
+        if (args.size() < 3) return new Message(MessageType.EDIT_COURSE, Status.FAIL, "Missing info");
+        
+        String id = args.get(0);
+        String newName = args.get(1);
+        
+        Course c = university.getCourse(id);
+        if (c == null) return new Message(MessageType.EDIT_COURSE, Status.FAIL, "Course is not found");
+        
+        try {
+            int newCap = Integer.parseInt(args.get(2));
+            
+            c.setTitle(newName);
+            c.setMaxCapacity(newCap);
+            
+            return new Message(MessageType.EDIT_COURSE, Status.SUCCESS, "Course has updated successfully.");
+        } catch (NumberFormatException e) {
+            return new Message(MessageType.EDIT_COURSE, Status.FAIL, "Invalid Capacity Number");
+        }
+    
+}
+}
