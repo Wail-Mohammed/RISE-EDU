@@ -130,7 +130,7 @@ public class LoginPage extends JFrame {
         }
         //to connect to the server
         try {
-            // We connect on demand when they click Login.
+            // We connect on demand when user click Login.
             client.connect(ip, 9898);
 
             Message response = sendLoginRequest(username, password);

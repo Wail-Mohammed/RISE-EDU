@@ -3,7 +3,6 @@ package app;
 import org.junit.platform.suite.api.SelectClasses;
 import org.junit.platform.suite.api.Suite;
 
-// Import all your tester classes
 import Server.SystemManagerTester;
 import Server.DataManagerTester;
 import Shared.MessageTester;
