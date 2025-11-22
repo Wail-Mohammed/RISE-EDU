@@ -1,72 +1,47 @@
 package app.Client;
 
-import java.io.*;
-import java.util.ArrayList;
-import java.util.Scanner;
-import java.net.*;
-import app.Shared.*;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.Socket;
 
-class Client {
-	public static void main(String[] args) {
-	    Socket socket = null;
-	    ObjectOutputStream out = null;
-	    ObjectInputStream in = null;
-	    Scanner sc = new Scanner(System.in);
+import app.Shared.Message;
 
-	    try {
-	        socket = new Socket("localhost", 9898);
-	        out = new ObjectOutputStream(socket.getOutputStream());
-	        in = new ObjectInputStream(socket.getInputStream());
-	        
-	        System.out.println("Connected to server.");
-	        
-	        System.out.print("Enter username: ");
-            String username = sc.nextLine();
-            System.out.print("Enter password: ");
-            String password = sc.nextLine();
-            
-            ArrayList<String> loginCredentials = new ArrayList<>();
-            loginCredentials.add(username);
-            loginCredentials.add(password);
+/*We decided to remove the older version of the Client class because it didn’t match the client-server architecture. 
+That version was a console app, it had a main() method, used a Scanner for input, and passed raw sockets and streams 
+directly into the GUI. This makes the GUI to handle networking itself, which breaks the UI and the client-server layer.
 
-	        Message loginMsg = new Message(Type.LOGIN, Status.NULL, "Logging in now...");
-	        out.writeObject(loginMsg);
-	        
-	        Message response = (Message) in.readObject();
-	        System.out.println("Server: " + response.getText());
-	        
-	        //Launching the GUI
-	        if (response.getUserType() === UserType.STUDENT) {
-	        	System.out.println("Launching Student Dashboard...");
-                gui = new StudentGUI(socket, in, out, username);
-	        	
-	        } else if (response.getUserType() === UserType.STUDENT) {
-	        	System.out.println("Launching Admin Dashboard...");
-                gui = new AdminGUI(socket, in, out, username);
-	        	
-	        } 
-		        if (gui != null) {
-		        	
-	                gui.processCommands();
-	            }
-	        
-	        else {
-	        	System.out.println("Login failed. Exiting...");
-	        }
+In the updated vision, the GUI should only talk to the server through Client.send(Message) method. 
+The client will act communication, not a user interface. 
+ */
 
-	    } catch (IOException | ClassNotFoundException e) {
-	        e.printStackTrace();
-	    }
-	    finally {
-	    	// To close socket and scanner
-            try {
-                if (in != null) in.close();
-                if (out != null) out.close();
-                if (socket != null) socket.close();
-                sc.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-	    }
-	}
+public class Client implements AutoCloseable {
+    private final String host;
+    private final int port;
+
+    public Client(String host, int port) {
+        this.host = host;
+        this.port = port;
+    }
+
+    public Client() {
+        this("localhost", 9898);
+    }
+
+    public Message send(Message request) throws IOException, ClassNotFoundException {
+        try (Socket socket = new Socket(host, port);
+             ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+             ObjectInputStream in = new ObjectInputStream(socket.getInputStream())) {
+
+            out.writeObject(request);
+            out.flush();
+
+            return (Message) in.readObject();
+        }
+    }
+
+    @Override
+    public void close() throws Exception {
+        
+    }
 }
