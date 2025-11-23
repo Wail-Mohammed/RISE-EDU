@@ -23,5 +23,8 @@ public enum MessageType {
     REPORT,
     ADD_HOLD,
     REMOVE_HOLD, 
-    ADD_USER
+    ADD_USER,
+    
+    // For enrollment list
+    LIST_ENROLLMENT
 }

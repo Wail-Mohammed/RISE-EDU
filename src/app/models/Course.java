@@ -40,6 +40,14 @@ public class Course implements Serializable {
     public int getCurrentEnrollment() {
         return enrolledStudents.size();
     }
+    
+    public ArrayList<String> getEnrolledStudents() {
+        if (enrolledStudents == null) {
+            enrolledStudents = new ArrayList<>();
+        }
+        return enrolledStudents;
+    }
+
 
     public boolean isFull() {
         return getCurrentEnrollment() >= maxCapacity;

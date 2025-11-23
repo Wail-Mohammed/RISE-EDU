@@ -237,5 +237,41 @@ public class SystemManager {
             return new Message(MessageType.EDIT_COURSE, Status.FAIL, "Invalid Capacity Number");
         }
     
-}
+    }
+    
+    // this will show the enrollment list for a course 
+    public Message getEnrollmentList(String courseId) {
+        Course course = university.getCourse(courseId);
+
+        if (course == null) {
+            return new Message(MessageType.LIST_ENROLLMENT, Status.FAIL, "Course not found");
+        }
+
+        ArrayList<String> enrolled = course.getEnrolledStudents();
+        ArrayList<String> displayList = new ArrayList<>();
+
+        if (enrolled.isEmpty()) {
+            return new Message(MessageType.LIST_ENROLLMENT, Status.SUCCESS,
+                               "No students enrolled in this course.");
+        }
+
+        for (int i = 0; i < enrolled.size(); i++) {
+            String username = enrolled.get(i);
+            Student s = university.getStudent(username);
+
+            if (s != null) {
+                displayList.add(
+                    String.format("%s - %s %s (%s)",
+                        s.getStudentId(),
+                        s.getFirstName(),
+                        s.getLastName(),
+                        username)
+                );
+            }
+        }
+
+        return new Message(MessageType.LIST_ENROLLMENT, Status.SUCCESS,
+                           "Enrollment List for " + courseId, displayList);
+    }
+
 }
