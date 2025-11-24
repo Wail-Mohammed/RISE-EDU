@@ -61,7 +61,7 @@ public class SystemManager {
         if (course == null) return new Message(MessageType.ENROLL_COURSE, Status.FAIL, "Course is not found.");
         
         if (student.hasHolds()) return new Message(MessageType.ENROLL_COURSE, Status.FAIL, "Hold: " + student.getHolds().get(0));
-        
+        // add a check for pre req
         if (course.enrollStudent(studentUsername)) {
             student.getSchedule().addCourse(course);
             return new Message(MessageType.ENROLL_COURSE, Status.SUCCESS, "Enrolled in " + course.getTitle());
@@ -273,5 +273,6 @@ public class SystemManager {
         return new Message(MessageType.LIST_ENROLLMENT, Status.SUCCESS,
                            "Enrollment List for " + courseId, displayList);
     }
+    // Add methods for waitlist and pre req
 
 }

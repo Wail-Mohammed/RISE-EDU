@@ -131,4 +131,28 @@ public class SystemManagerTester {
         assertEquals(Status.SUCCESS, manager.getReport().getStatus());
         assertNotNull(manager.getReport().getText());
     }
+    
+    @Test
+    void enrollmentListEmptyCheck() {
+        var msg = manager.getEnrollmentList("Course1");
+        assertEquals(Status.SUCCESS, msg.getStatus());
+        assertEquals("No students enrolled in this course.", msg.getText());
+        assertNull(msg.getList());
+    }
+
+    @Test
+    void enrollmentListWithStudentsCheck() {
+        manager.processEnrollment("student1", "Course1");
+        manager.processEnrollment("student2", "Course1");
+
+        var msg = manager.getEnrollmentList("Course1");
+        assertEquals(Status.SUCCESS, msg.getStatus());
+        assertEquals("Enrollment List for Course1", msg.getText());
+
+        ArrayList<String> list = msg.getList();
+        assertNotNull(list);
+        assertEquals(2, list.size());
+        assertTrue(list.contains("S001 - First Last (student1)"));
+        assertTrue(list.contains("S002 - Second User (student2)"));
+    }
 }
