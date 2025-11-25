@@ -48,10 +48,10 @@ public class Server {
         
         //Here we start the server to listen for client connections, once connected we pass it to the clientHandler
         
-        try (ServerSocket listener = new ServerSocket(5000, 50, InetAddress.getByName("0.0.0.0"))) {
+        try (ServerSocket listener = new ServerSocket(9999, 50, InetAddress.getByName("0.0.0.0"))) {
             System.out.println("---------------------------------------------");
             System.out.println("The RISE-EDU Server is running.");
-            System.out.println("Listening on Port: 5000");
+            System.out.println("Listening on Port: 9999");
             
             //printing the ip address of current network so others can use it to connect to this server.
             findandPrintCurrentIPAddress();             
