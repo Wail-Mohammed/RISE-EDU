@@ -5,6 +5,7 @@ import org.junit.platform.suite.api.Suite;
 
 import Server.SystemManagerTester;
 import Server.DataManagerTester;
+import Server.ServerTester;
 import Shared.MessageTester;
 import Shared.MessageTypeTester;
 import Shared.StatusTester;
@@ -22,6 +23,7 @@ import models.AdminTester;
 @SelectClasses({
     SystemManagerTester.class,
     DataManagerTester.class,
+    ServerTester.class,
     MessageTester.class,
     MessageTypeTester.class,
     StatusTester.class,

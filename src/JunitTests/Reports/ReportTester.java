@@ -9,14 +9,43 @@ import app.Report.Report;
 public class ReportTester {
 	
 	@Test
-    void generateGettersAndSave() {
+    void testReportGetReportID() {
         Report report = new Report("Enrollment Summary");
         String id = report.getReportID();
         assertNotNull(id);
-        report.generate("Example Report");
+    }
+
+	@Test
+    void testReportGetReportType() {
+        Report report = new Report("Enrollment Summary");
         assertEquals("Enrollment Summary", report.getReportType());
+    }
+
+	@Test
+    void testReportGenerate() {
+        Report report = new Report("Enrollment Summary");
+        report.generate("Example Report");
         assertEquals("Example Report", report.getReportData());
+    }
+
+	@Test
+    void testReportGetReportData() {
+        Report report = new Report("Enrollment Summary");
+        report.generate("Example Report");
+        assertEquals("Example Report", report.getReportData());
+    }
+
+	@Test
+    void testReportSaveReport() {
+        Report report = new Report("Enrollment Summary");
+        report.generate("Example Report");
         assertTrue(report.saveReport());
+    }
+
+	@Test
+    void testReportGetGeneratedDate() {
+        Report report = new Report("Enrollment Summary");
+        report.generate("Example Report");
         assertNotNull(report.getGeneratedDate());
     }
 

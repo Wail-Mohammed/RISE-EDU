@@ -10,9 +10,14 @@ import app.models.Admin;
 public class AdminTester {
 
 	@Test
-    void idGetterAndType() {
+    void testAdminGetAdminId() {
         Admin admin = new Admin("admin","password1","firstName","lastName","A1100");
         assertEquals("A1100", admin.getAdminId());
+    }
+
+	@Test
+    void testAdminGetUserType() {
+        Admin admin = new Admin("admin","password1","firstName","lastName","A1100");
         assertEquals(UserType.ADMIN, admin.getUserType());
     }
 
