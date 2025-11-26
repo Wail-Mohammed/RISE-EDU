@@ -1,2 +1,6 @@
 /bin/
 .DS_Store
+
+# Ignore all Markdown documents
+*.md
+**/*.md

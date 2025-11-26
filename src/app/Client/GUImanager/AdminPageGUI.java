@@ -178,6 +178,45 @@ public class AdminPageGUI extends JFrame {
             Message response = client.send(msg);
             
             if (response.getStatus() == Status.SUCCESS) {
+                // Show course ID after creating a course
+                if (msg.getType() == MessageType.CREATE_COURSE && 
+                    response.getText().startsWith("Created ")) {
+                    
+                    String courseId = response.getText().substring(8).trim();
+                    String html = 
+                        "<html><body>" +
+                        "<div style='text-align:center; font-family:Arial;'>" +
+                            "<h2 style='color:black; margin:0;'>Course Created!</h2>" +
+                            "<p style='margin-top:10px; font-size:16px;'>Course ID:</p>" +
+                            "<p style='font-size:22px; font-weight:bold;'>" + courseId + "</p>" +
+                        "</div>" +
+                        "</body></html>";
+                    
+                    JLabel label = new JLabel(html);
+                    label.setHorizontalAlignment(SwingConstants.CENTER);
+                    
+                    // Create a panel to ensure everything is centered
+                    JPanel panel = new JPanel(new BorderLayout());
+                    panel.add(label, BorderLayout.CENTER);
+                    panel.setBorder(BorderFactory.createEmptyBorder(20, 40, 20, 40));
+                    
+                   
+                    UIManager.put("OptionPane.buttonOrientation", SwingConstants.CENTER);
+                    try {
+                        JOptionPane.showMessageDialog(
+                            this,
+                            panel,
+                            "Success",
+                            JOptionPane.PLAIN_MESSAGE,
+                            null  // no icon
+                        );
+                    } finally {
+                       
+                        UIManager.put("OptionPane.buttonOrientation", SwingConstants.RIGHT);
+                    }
+                    return;
+                }
+                
                 // for view list of students or reports
                 if (response.getList() != null && !response.getList().isEmpty()) {
                     
