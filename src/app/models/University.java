@@ -20,7 +20,9 @@ public class University implements Serializable {
         this.courseCatalog = new HashMap<>();
     }
     
-
+    public String getUniversityName() {
+        return universityName;
+    }
 
     public Course getCourse(String id) {
         return courseCatalog.get(id);

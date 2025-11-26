@@ -24,6 +24,7 @@ public enum MessageType {
     ADD_HOLD,
     REMOVE_HOLD, 
     ADD_USER,
+    VIEW_UNIVERSITIES,
     
     // For enrollment list
     LIST_ENROLLMENT
