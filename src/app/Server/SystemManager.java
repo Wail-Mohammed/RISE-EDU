@@ -60,7 +60,7 @@ public class SystemManager {
         if (student == null) return new Message(MessageType.ENROLL_COURSE, Status.FAIL, "Student is not found.");
         if (course == null) return new Message(MessageType.ENROLL_COURSE, Status.FAIL, "Course is not found.");
         
-        if (student.hasHolds()) return new Message(MessageType.ENROLL_COURSE, Status.FAIL, "Hold: " + student.getHolds().get(0));
+        if (student.hasHolds()) return new Message(MessageType.ENROLL_COURSE, Status.FAIL, "Cannot Enroll Due to Hold: " + student.getHolds().get(0));
         // add a check for pre req
         if (course.enrollStudent(studentUsername)) {
             student.getSchedule().addCourse(course);
@@ -93,7 +93,17 @@ public class SystemManager {
 
         ArrayList<String> displayList = new ArrayList<>();
         for (Course c : student.getSchedule().getCourses()) {
-            displayList.add(c.getCourseId() + ": " + c.getTitle() + " (" + c.getTime() + ")");
+        	// Format: Course ID | Course Name | Time | Instructor | Credits | Enrollment/Capacity
+            String studentScheduleDetails = String.format("%-8s | %-35.35s | %-12s | %-15s | %d Credits | [%d/%d]", 
+                c.getCourseId(), 
+                c.getTitle(), 
+                c.getTime(), 
+                c.getInstructor(),
+                c.getCredits(),
+                c.getCurrentEnrollment(), 
+                c.getMaxCapacity()
+            );        	
+            displayList.add(studentScheduleDetails);
         }
         
         if (displayList.isEmpty()) return new Message(MessageType.VIEW_SCHEDULE, Status.SUCCESS, "Schedule is Empty.");
@@ -179,9 +189,19 @@ public class SystemManager {
     public Message getAllCourses() {
         ArrayList<String> list = new ArrayList<>();
         for (Course c : university.getAllCourses()) {
-            list.add(c.getCourseId() + " - " + c.getTitle());
+        	// Format: Course ID | Course Name | Time | Instructor | Credits | Enrollment/Capacity
+            String coursesDetails = String.format("%-8s | %-35.35s | %-12s | %-15s | %d Credits | [%d/%d]", 
+                c.getCourseId(), 
+                c.getTitle(), 
+                c.getTime(), 
+                c.getInstructor(),
+                c.getCredits(),
+                c.getCurrentEnrollment(), 
+                c.getMaxCapacity()
+            );
+            list.add(coursesDetails);
         }
-        return new Message(MessageType.LIST_COURSES, Status.SUCCESS, "Catalog", list);
+        return new Message(MessageType.LIST_COURSES, Status.SUCCESS, " Course Catalog for Spring 2026", list);
     }
 
     public Message getAllStudents() {

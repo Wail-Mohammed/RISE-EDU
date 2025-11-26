@@ -106,6 +106,8 @@ public class StudentPageGUI extends JFrame {
                 // If we got a list back (like schedule or courses), we format it nicely
                 if (response.getList() != null && !response.getList().isEmpty()) {
                     StringBuilder sb = new StringBuilder(response.getText() + "\n\n");
+                    sb.append(String.format("%-8s | %-35.35s | %-12s | %-15s | %s | %s\n", "Course ID", " Course Title", "Class Time", "Instructor", "Credits", "Class Capacity"));
+                    sb.append("-".repeat(110) + "\n");
                     for (String item : response.getList()) {
                         sb.append(item).append("\n");
                     }
@@ -113,7 +115,8 @@ public class StudentPageGUI extends JFrame {
                     JScrollPane scrollPane = new JScrollPane(textArea);
                     textArea.setLineWrap(true);
                     textArea.setWrapStyleWord(true);
-                    scrollPane.setPreferredSize(new Dimension(400, 300));
+                    scrollPane.setPreferredSize(new Dimension(800, 400));
+                    textArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
                     JOptionPane.showMessageDialog(this, scrollPane, "Result", JOptionPane.INFORMATION_MESSAGE);
                 } else {
                     JOptionPane.showMessageDialog(this, response.getText(), "Success", JOptionPane.INFORMATION_MESSAGE);
