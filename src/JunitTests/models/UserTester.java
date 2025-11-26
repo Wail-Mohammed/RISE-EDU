@@ -10,28 +10,90 @@ import app.models.Student;
 
 public class UserTester {
 
-	@Test
-    void studentUserFieldsAndPassword() {
+
+    @Test
+    void testStudentGetUsername() {
         Student student = new Student("student1", "password1", "First", "Last", "S0011");
         assertEquals("student1", student.getUsername());
-        assertEquals("First", student.getFirstName());
-        assertEquals("Last", student.getLastName());
-        assertEquals(UserType.STUDENT, student.getUserType());
-        assertTrue(student.checkPassword("password1"));
-        assertFalse(student.checkPassword("wrong"));
-        assertEquals("password1", student.getPassword());
     }
 
     @Test
-    void adminUserFieldsAndPassword() {
-        Admin admin = new Admin("admin1", "adminPass", "Admin", "User", "A1101");
-        assertEquals("admin1", admin.getUsername());
-        assertEquals("Admin", admin.getFirstName());
-        assertEquals("User", admin.getLastName());
-        assertEquals(UserType.ADMIN, admin.getUserType());
-        assertTrue(admin.checkPassword("adminPass"));
-        assertFalse(admin.checkPassword("nope"));
-        assertEquals("adminPass", admin.getPassword());
+    void testStudentGetFirstName() {
+        Student student = new Student("student1", "password1", "First", "Last", "S0011");
+        assertEquals("First", student.getFirstName());
     }
 
+    @Test
+    void testStudentGetLastName() {
+        Student student = new Student("student1", "password1", "First", "Last", "S0011");
+        assertEquals("Last", student.getLastName());
+    }
+
+    @Test
+    void testStudentGetUserType() {
+        Student student = new Student("student1", "password1", "First", "Last", "S0011");
+        assertEquals(UserType.STUDENT, student.getUserType());
+    }
+
+    @Test
+    void testStudentCheckPasswordCorrect() {
+        Student student = new Student("student1", "password1", "First", "Last", "S0011");
+        assertTrue(student.checkPassword("password1"));
+    }
+
+    @Test
+    void testStudentCheckPasswordWrong() {
+        Student student = new Student("student1", "password1", "First", "Last", "S0011");
+        assertFalse(student.checkPassword("wrong"));
+    }
+
+    @Test
+    void testStudentGetPassword() {
+        Student student = new Student("student1", "password1", "First", "Last", "S0011");
+        assertEquals("password1", student.getPassword());
+    }
+
+    // ---------- Admin tests ----------
+
+    @Test
+    void testAdminGetUsername() {
+        Admin admin = new Admin("admin1", "adminPass", "Admin", "User", "A1101");
+        assertEquals("admin1", admin.getUsername());
+    }
+
+    @Test
+    void testAdminGetFirstName() {
+        Admin admin = new Admin("admin1", "adminPass", "Admin", "User", "A1101");
+        assertEquals("Admin", admin.getFirstName());
+    }
+
+    @Test
+    void testAdminGetLastName() {
+        Admin admin = new Admin("admin1", "adminPass", "Admin", "User", "A1101");
+        assertEquals("User", admin.getLastName());
+    }
+
+    @Test
+    void testAdminGetUserType() {
+        Admin admin = new Admin("admin1", "adminPass", "Admin", "User", "A1101");
+        assertEquals(UserType.ADMIN, admin.getUserType());
+    }
+
+    @Test
+    void testAdminCheckPasswordCorrect() {
+        Admin admin = new Admin("admin1", "adminPass", "Admin", "User", "A1101");
+        assertTrue(admin.checkPassword("adminPass"));
+    }
+
+    @Test
+    void testAdminCheckPasswordWrong() {
+        Admin admin = new Admin("admin1", "adminPass", "Admin", "User", "A1101");
+        assertFalse(admin.checkPassword("nope"));
+    }
+
+    @Test
+    void testAdminGetPassword() {
+        Admin admin = new Admin("admin1", "adminPass", "Admin", "User", "A1101");
+        assertEquals("adminPass", admin.getPassword());
+    }
 }
