@@ -208,8 +208,14 @@ public class SystemManager {
         
         sb.append("\n------------- STUDENTS ------------\n");
         for (Student s : university.getAllStudents()) {
-            sb.append(String.format("%s: %s %s (Enrolled: %d)\n", 
-                s.getStudentId(), s.getFirstName(), s.getLastName(), s.getSchedule().getCourses().size()));
+        	String holdStatus;
+        	if (s.hasHolds()) {
+        		holdStatus = "[HOLDS: " + s.getHolds().toString() + "]";
+            } else {
+                holdStatus = "[Clear: No holds]";
+            }
+        	sb.append(String.format("%s: %s %s %s (Enrolled: %d)\n", 
+                s.getStudentId(), s.getFirstName(), s.getLastName(), holdStatus, s.getSchedule().getCourses().size()));
         }
         
         report.generate(sb.toString());
