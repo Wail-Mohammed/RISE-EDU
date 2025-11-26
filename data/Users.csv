@@ -1,6 +1,6 @@
-User-Type,Username,Password,FirstName,LastName,ID
-STUDENT,student1,password1,FirstName,LastName,S0011
-STUDENT,yesenia,tinkerbell,Yesenia,Ruiz,S0002
-STUDENT,wail,$wail$,Wail,Mohammed,S0001
-ADMIN,admin1,adminPass,Admin,User,A1100
-ADMIN,admin2,adminPass2,admin2,adminLast,A0002
+User-Type,Username,Password,FirstName,LastName,ID, Holds
+STUDENT,student1,password1,FirstName,LastName,S0011,
+STUDENT,yesenia,tinkerbell,Yesenia,Ruiz,S0002,Missing Transcript
+STUDENT,wail,$wail$,Wail,Mohammed,S0001,Failing Grade
+ADMIN,admin1,adminPass,Admin,User,A1100,
+ADMIN,admin2,adminPass2,admin2,adminLast,A0002,
