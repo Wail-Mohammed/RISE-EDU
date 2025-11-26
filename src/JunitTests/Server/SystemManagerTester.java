@@ -32,32 +32,66 @@ public class SystemManagerTester {
     }
 
     @Test
-    void findUserCheck() {
+    void testFindUserSuccess() {
         assertEquals(student1, manager.findUser("student1"));
+    }
+
+    @Test
+    void testFindUserNotFound() {
         assertNull(manager.findUser("unknown"));
     }
 
     @Test
-    void authenticateUserCheck() {
+    void testAuthenticateUserSuccess() {
         assertEquals(Status.SUCCESS, manager.authenticateUser("student1", "password1").getStatus());
+    }
+
+    @Test
+    void testAuthenticateUserWrongPassword() {
         assertEquals(Status.FAIL, manager.authenticateUser("student1", "wrongPassword").getStatus());
+    }
+
+    @Test
+    void testAuthenticateUserNonExistent() {
         assertEquals(Status.FAIL, manager.authenticateUser("noUser", "noPassword").getStatus());
     }
 
     @Test
-    void enrollmentPathCheck() {
+    void testProcessEnrollment() {
         assertEquals(Status.SUCCESS, manager.processEnrollment("student1", "Course1").getStatus());
+    }
+
+    @Test
+    void testGetStudentSchedule() {
+        manager.processEnrollment("student1", "Course1");
         assertEquals(Status.SUCCESS, manager.getStudentSchedule("student1").getStatus());
+    }
+
+    @Test
+    void testProcessDrop() {
+        manager.processEnrollment("student1", "Course1");
         assertEquals(Status.SUCCESS, manager.processDrop("student1", "Course1").getStatus());
     }
 
     @Test
-    void enrollmentEdgeCaseChecks() {
+    void testProcessEnrollmentNonExistentStudent() {
         assertEquals(Status.FAIL, manager.processEnrollment("nonExistent", "Course1").getStatus());
+    }
+
+    @Test
+    void testProcessEnrollmentInvalidCourse() {
         assertEquals(Status.FAIL, manager.processEnrollment("student1", "InvalidCourse").getStatus());
+    }
+
+    @Test
+    void testProcessEnrollmentWithHold() {
         student1.addHold("missing payment");
         assertEquals(Status.FAIL, manager.processEnrollment("student1", "Course1").getStatus());
         student1.removeHold("missing payment");
+    }
+
+    @Test
+    void testProcessEnrollmentDuplicate() {
         manager.processEnrollment("student1", "Course1");
         assertEquals(Status.FAIL, manager.processEnrollment("student1", "Course1").getStatus());
     }
@@ -75,7 +109,7 @@ public class SystemManagerTester {
     }
 
     @Test
-    void addUserCreateCourseEditCourseChecks() {
+    void testAddUserSuccess() {
         ArrayList<String> userArgs = new ArrayList<>();
         userArgs.add("STUDENT");
         userArgs.add("student2");
@@ -84,8 +118,23 @@ public class SystemManagerTester {
         userArgs.add("Last");
         userArgs.add("S0002");
         assertEquals(Status.SUCCESS, manager.addUser(userArgs).getStatus());
-        assertEquals(Status.FAIL, manager.addUser(userArgs).getStatus());
+    }
 
+    @Test
+    void testAddUserDuplicate() {
+        ArrayList<String> userArgs = new ArrayList<>();
+        userArgs.add("STUDENT");
+        userArgs.add("student2");
+        userArgs.add("pass2");
+        userArgs.add("First");
+        userArgs.add("Last");
+        userArgs.add("S0002");
+        manager.addUser(userArgs);
+        assertEquals(Status.FAIL, manager.addUser(userArgs).getStatus());
+    }
+
+    @Test
+    void testCreateCourseSuccess() {
         ArrayList<String> courseArgs = new ArrayList<>();
         courseArgs.add("Course2");
         courseArgs.add("CourseName");
@@ -95,14 +144,53 @@ public class SystemManagerTester {
         courseArgs.add("Instructor");
         courseArgs.add("10");
         assertEquals(Status.SUCCESS, manager.createCourse(courseArgs).getStatus());
-        assertEquals(Status.FAIL, manager.createCourse(courseArgs).getStatus());
+    }
 
+    @Test
+    void testCreateCourseDuplicate() {
+        ArrayList<String> courseArgs = new ArrayList<>();
+        courseArgs.add("Course2");
+        courseArgs.add("CourseName");
+        courseArgs.add("Time");
+        courseArgs.add("Room");
+        courseArgs.add("3");
+        courseArgs.add("Instructor");
+        courseArgs.add("10");
+        manager.createCourse(courseArgs);
+        assertEquals(Status.FAIL, manager.createCourse(courseArgs).getStatus());
+    }
+
+    @Test
+    void testEditCourseSuccess() {
+        ArrayList<String> courseArgs = new ArrayList<>();
+        courseArgs.add("Course2");
+        courseArgs.add("CourseName");
+        courseArgs.add("Time");
+        courseArgs.add("Room");
+        courseArgs.add("3");
+        courseArgs.add("Instructor");
+        courseArgs.add("10");
+        manager.createCourse(courseArgs);
+        
         ArrayList<String> editArgs = new ArrayList<>();
         editArgs.add("Course2");
         editArgs.add("UpdatedCourse");
         editArgs.add("15");
         assertEquals(Status.SUCCESS, manager.editCourse(editArgs).getStatus());
+    }
 
+    @Test
+    void testEditCourseInvalidInput() {
+        ArrayList<String> courseArgs = new ArrayList<>();
+        courseArgs.add("Course2");
+        courseArgs.add("CourseName");
+        courseArgs.add("Time");
+        courseArgs.add("Room");
+        courseArgs.add("3");
+        courseArgs.add("Instructor");
+        courseArgs.add("10");
+        manager.createCourse(courseArgs);
+        
         ArrayList<String> badArgs = new ArrayList<>();
         badArgs.add("Course2");
         badArgs.add("WrongCourse");
@@ -111,23 +199,48 @@ public class SystemManagerTester {
     }
 
     @Test
-    void deleteCourseCheck() {
+    void testDeleteCourseSuccess() {
         assertEquals(Status.SUCCESS, manager.deleteCourse("Course1").getStatus());
+    }
+
+    @Test
+    void testDeleteCourseNotFound() {
         assertEquals(Status.FAIL, manager.deleteCourse("NoSuchCourse").getStatus());
     }
 
     @Test
-    void holdsCheck() {
+    void testPlaceHoldOnAccountSuccess() {
         assertEquals(Status.SUCCESS, manager.placeHoldOnAccount("S0011", "Reason").getStatus());
+    }
+
+    @Test
+    void testRemoveHoldOnAccountSuccess() {
+        manager.placeHoldOnAccount("S0011", "Reason");
         assertEquals(Status.SUCCESS, manager.removeHoldOnAccount("S0011", "Reason").getStatus());
+    }
+
+    @Test
+    void testPlaceHoldOnAccountInvalidId() {
         assertEquals(Status.FAIL, manager.placeHoldOnAccount("InvalidID", "Reason").getStatus());
+    }
+
+    @Test
+    void testRemoveHoldOnAccountInvalidId() {
         assertEquals(Status.FAIL, manager.removeHoldOnAccount("InvalidID", "Reason").getStatus());
     }
 
     @Test
-    void listsAndReportCheck() {
+    void testGetAllCourses() {
         assertEquals(Status.SUCCESS, manager.getAllCourses().getStatus());
+    }
+
+    @Test
+    void testGetAllStudents() {
         assertEquals(Status.SUCCESS, manager.getAllStudents().getStatus());
+    }
+
+    @Test
+    void testGetReport() {
         assertEquals(Status.SUCCESS, manager.getReport().getStatus());
         assertNotNull(manager.getReport().getText());
     }
@@ -137,11 +250,19 @@ public class SystemManagerTester {
         var msg = manager.getEnrollmentList("Course1");
         assertEquals(Status.SUCCESS, msg.getStatus());
         assertEquals("No students enrolled in this course.", msg.getText());
-        assertNull(msg.getList());
+        assertNotNull(msg.getList());
+        assertTrue(msg.getList().isEmpty());
     }
 
     @Test
     void enrollmentListWithStudentsCheck() {
+        // Create and add student2 to university
+        Student student2 = new Student("student2", "password2", "Second", "User", "S0002");
+        university.addStudent(student2);
+        
+        // Increase course capacity to allow 2 students
+        course1.setMaxCapacity(2);
+        
         manager.processEnrollment("student1", "Course1");
         manager.processEnrollment("student2", "Course1");
 
@@ -152,7 +273,7 @@ public class SystemManagerTester {
         ArrayList<String> list = msg.getList();
         assertNotNull(list);
         assertEquals(2, list.size());
-        assertTrue(list.contains("S001 - First Last (student1)"));
-        assertTrue(list.contains("S002 - Second User (student2)"));
+        assertTrue(list.contains("S0011 - First Last (student1)"));
+        assertTrue(list.contains("S0002 - Second User (student2)"));
     }
 }

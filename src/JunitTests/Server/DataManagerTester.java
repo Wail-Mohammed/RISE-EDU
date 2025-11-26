@@ -13,7 +13,7 @@ import app.models.University;
 public class DataManagerTester {
 
     @Test
-    void saveThenLoad() {
+    void testDataManagerSaveDataToFiles() {
         University university = new University("University1");
         Student student1 = new Student("student1", "password1", "FirstName", "LastName", "S0011");
         Course course1 = new Course("Course1", "Title", "time", "location", 3, "Instructor", 5, 0);
@@ -25,8 +25,22 @@ public class DataManagerTester {
         DataManager dataManager = new DataManager();
         dataManager.saveDataToFiles(university);
         University loadedUniversity = dataManager.loadDataFromFiles();
-
         assertTrue(loadedUniversity.getAllUsers().size() > 0);
+    }
+
+    @Test
+    void testDataManagerLoadDataFromFiles() {
+        University university = new University("University1");
+        Student student1 = new Student("student1", "password1", "FirstName", "LastName", "S0011");
+        Course course1 = new Course("Course1", "Title", "time", "location", 3, "Instructor", 5, 0);
+        student1.getSchedule().addCourse(course1);
+        university.addStudent(student1);
+        university.addAdmin(new Admin("admin1", "adminPass", "Admin", "User", "A1100"));
+        university.addCourse(course1);
+
+        DataManager dataManager = new DataManager();
+        dataManager.saveDataToFiles(university);
+        University loadedUniversity = dataManager.loadDataFromFiles();
         assertTrue(loadedUniversity.getAllCourses().size() > 0);
     }
 }

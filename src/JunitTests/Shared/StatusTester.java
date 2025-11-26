@@ -8,12 +8,24 @@ import app.Shared.Status;
 
 public class StatusTester {
 
-	 @Test
-	    void statusEnumValues() {
-	        assertEquals("SUCCESS", Status.SUCCESS.name());
-	        assertEquals("FAIL", Status.FAIL.name());
-	        assertEquals("NULL", Status.NULL.name());
-	        assertEquals(3, Status.values().length);
-	    }
+	@Test
+    void testStatusSuccess() {
+        assertEquals("SUCCESS", Status.SUCCESS.name());
+    }
+
+	@Test
+    void testStatusFail() {
+        assertEquals("FAIL", Status.FAIL.name());
+    }
+
+	@Test
+    void testStatusNull() {
+        assertEquals("NULL", Status.NULL.name());
+    }
+
+	@Test
+    void testStatusValuesLength() {
+        assertEquals(3, Status.values().length);
+    }
 
 }
