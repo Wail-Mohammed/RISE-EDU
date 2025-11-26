@@ -138,10 +138,11 @@ public class AdminPageGUI extends JFrame {
             }
         } else if (choice == 1) {
             String studentId = JOptionPane.showInputDialog("Enter Student ID:");
+            String reason = JOptionPane.showInputDialog("Enter the Exact Hold Reason to Remove: ");
             if (studentId != null) {
                 ArrayList<String> args = new ArrayList<>();
                 args.add(studentId);
-                args.add("Reason ignored for removal");
+                args.add(reason);
                 sendRequest(new Message(MessageType.REMOVE_HOLD, Status.NULL, "", args));
             }
         }

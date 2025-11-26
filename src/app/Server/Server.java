@@ -48,10 +48,13 @@ public class Server {
         
         //Here we start the server to listen for client connections, once connected we pass it to the clientHandler
         
-        try (ServerSocket listener = new ServerSocket(9999, 50, InetAddress.getByName("0.0.0.0"))) {
+//        try (ServerSocket listener = new ServerSocket(9999, 50, InetAddress.getByName("0.0.0.0"))){
+        try (ServerSocket listener = new ServerSocket(9898, 50, InetAddress.getByName("0.0.0.0"))) {
             System.out.println("---------------------------------------------");
             System.out.println("The RISE-EDU Server is running.");
-            System.out.println("Listening on Port: 9999");
+//            System.out.println("Listening on Port: 9999");
+          System.out.println("Listening on Port: 9898");
+
             
             //printing the ip address of current network so others can use it to connect to this server.
             findandPrintCurrentIPAddress();             
@@ -92,16 +95,17 @@ public class Server {
         private Socket socket;
         private SystemManager manager;
         private User currentUser; 
+        private final int clientId;
 
         ClientHandler(Socket socket, SystemManager manager) {
-            this.socket = socket;
+            this.clientId = ++clientCount;
+			this.socket = socket;
             this.manager = manager;
         }
         
         @Override
         public void run() {
-            clientCount++;
-            System.out.println("Client " + clientCount + " connected from: " + socket.getInetAddress());
+            System.out.println("Client " + this.clientId  + " connected from: " + socket.getInetAddress());
             
             try (
                 ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
@@ -178,9 +182,9 @@ public class Server {
                     if (type == MessageType.LOGOUT) break;
                 }
             } catch (EOFException e) {
-                System.out.println("Client " + clientCount + " disconnected.");
+                System.out.println("Client " + this.clientId  + " disconnected.");
             } catch (Exception e) {
-                System.err.println("Error handling client " + clientCount + ": " + e.getMessage());
+                System.err.println("Error handling client " + this.clientId  + ": " + e.getMessage());
             } finally {
                 try { socket.close(); } catch (IOException e) {}
             }

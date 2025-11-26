@@ -69,7 +69,15 @@ public class DataManager {
                 String id = parts[5];
 
                 if (type.equals("STUDENT")) {
-                    university.addStudent(new Student(username, password, first, last, id));
+                	Student s = new Student (username, password, first, last, id);
+                	// to load a list of holds if any in the users file
+                	if (parts.length > 6 && !parts[6].isEmpty()) {
+                        String[] holdList = parts[6].split(";");
+                        for (String h : holdList) {
+                            s.addHold(h);
+                        }
+                    }
+                    university.addStudent(s);
                 } else if (type.equals("ADMIN")) {
                     university.addAdmin(new Admin(username, password, first, last, id));
                 }
@@ -149,16 +157,24 @@ public class DataManager {
     
     private void saveUsers(University university) {
         try (PrintWriter writer = new PrintWriter(new FileWriter(USERS_FILE))) {
-        	writer.println("User-Type,Username,Password,FirstName,LastName,ID"); // for our user header
+        	writer.println("User-Type,Username,Password,FirstName,LastName,ID, Holds"); // for our user header
             for (User u : university.getAllUsers()) {
                 String type = (u.getUserType() == UserType.STUDENT) ? "STUDENT" : "ADMIN";
                 String id = (u.getUserType() == UserType.STUDENT) 
                             ? ((Student)u).getStudentId() 
                             : ((Admin)u).getAdminId();
+                // to save holds
+                String holds = "";
+                if (u instanceof Student) {
+                    Student s = (Student) u;
+                    if (!s.getHolds().isEmpty()) {
+                        holds = String.join(";", s.getHolds());
+                    }
+                }
 
                 // Format: type,username,password,firstname,lastname,id
-                writer.printf("%s,%s,%s,%s,%s,%s%n", 
-                    type, u.getUsername(), u.getPassword(), u.getFirstName(), u.getLastName(), id);
+                writer.printf("%s,%s,%s,%s,%s,%s,%s%n", 
+                    type, u.getUsername(), u.getPassword(), u.getFirstName(), u.getLastName(), id, holds);
             }
         } catch (IOException e) {
             System.err.println("Error saving users: " + e.getMessage());
