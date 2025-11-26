@@ -4,3 +4,7 @@
 # Ignore all Markdown documents
 *.md
 **/*.md
+
+# Ignore all compiled class files
+*.class
+**/*.class
