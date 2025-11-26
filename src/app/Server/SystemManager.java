@@ -12,6 +12,13 @@ public class SystemManager {
 
     private static SystemManager instance; 
     private University university;
+    
+    // using this Hashmap to store prereqs
+    private HashMap<String, ArrayList<String>> prerequisite = new HashMap<>();
+    
+    // using this to store the waitlist
+    private HashMap<String, ArrayList<String>> waitL = new HashMap<>();
+    
 
     public static synchronized SystemManager getInstance() {
         if (instance == null) instance = new SystemManager();
@@ -62,10 +69,15 @@ public class SystemManager {
         
         if (student.hasHolds()) return new Message(MessageType.ENROLL_COURSE, Status.FAIL, "Hold: " + student.getHolds().get(0));
         // add a check for pre req
+        if(coursePrereqCheck(student, courseId) == false) {
+        	return new Message(MessageType.ENROLL_COURSE, Status.FAIL, "The prerequisites for this course " + course.getTitle() + 
+        			"have not been fulfilled");
+        }
         if (course.enrollStudent(studentUsername)) {
             student.getSchedule().addCourse(course);
             return new Message(MessageType.ENROLL_COURSE, Status.SUCCESS, "Enrolled in " + course.getTitle());
         }
+        int pos = inWaitlist(studentUsername, courseId);
         return new Message(MessageType.ENROLL_COURSE, Status.FAIL, "Unfortunately, this course is full.");
     }
 
@@ -273,6 +285,55 @@ public class SystemManager {
         return new Message(MessageType.LIST_ENROLLMENT, Status.SUCCESS,
                            "Enrollment List for " + courseId, displayList);
     }
+    
     // Add methods for waitlist and pre req
+    
+    private ArrayList<String> makeWaitlist(String courseId) {
+    	ArrayList<String> waitlist = waitL.get(courseId); // using this for the waitlist studnt is in
+    	
+    	if(waitlist == null) {
+    		waitlist = new ArrayList<>(); // for storing the list of the waitlists of the student
+    		
+    		waitL.put(courseId, waitlist); // using this for putting the course in waitlist
+    	}
+    	
+    	return waitlist; // using this so we see student's waitlisted courses so far
+    }
+    
+    private int inWaitlist(String username, String courseId) {
+    	ArrayList<String> waitlist = makeWaitlist(courseId);
+    	waitlist.add(username);
+    	return waitlist.size();
+    }
+    
+    public void addCoursePrereq(String courseId, String prereqId) {
+    	ArrayList<String> list = prerequisite.get(courseId);
+    	if(list == null) {
+    		list = new ArrayList<>();
+    		prerequisite.put(courseId, list);
+    	}
+    	list.add(prereqId);
+    }
+    
+    // to be sure that student did the course before
+    private boolean coursePrereqCheck(Student s, String courseId) {
+    	ArrayList<String> toBeMet = prerequisite.get(courseId); // Using this to check the prereqs to be met
+    	if (toBeMet == null || toBeMet.isEmpty()) {
+    		return true; // using this block to say that if course fulfillment has been met, then the student is good to.
+    	}
+    	
+    	ArrayList<String> taken = new ArrayList<>(); // getting the courses the student has in schedule
+    	for (Course c : s.getSchedule().getCourses()) {
+    		taken.add(c.getCourseId());
+    	}
+    	
+    	// using this for verifying student hasn't met any prerequisites
+    	for (String req : toBeMet) {
+    		if(!taken.contains(req)) {
+    			return false;
+    		}
+    	}
+    	return true;
+    }
 
 }
