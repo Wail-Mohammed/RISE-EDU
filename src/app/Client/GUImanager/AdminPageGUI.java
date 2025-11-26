@@ -52,6 +52,9 @@ public class AdminPageGUI extends JFrame {
         grid.add(createActionButton("Generate report", e -> generateReport()));
         grid.add(createActionButton("View students schedules", e -> viewStudents()));
         grid.add(createActionButton("Student holds", e -> manageHolds()));
+        grid.add(createActionButton("View Enrollment List", e -> viewEnrollmentList()));
+        grid.add(createActionButton("View Universties", e -> viewUniversties()));
+        
 
         wrapper.add(grid, BorderLayout.CENTER);
         return wrapper;
@@ -171,6 +174,18 @@ public class AdminPageGUI extends JFrame {
         sendRequest(new Message(MessageType.VIEW_STUDENTS, Status.NULL, "")); 
     }
     
+    private void viewUniversties() { 
+        sendRequest(new Message(MessageType.VIEW_UNIVERSITIES, Status.NULL, "")); 
+    }
+    private void viewEnrollmentList() {
+        // Ask admin which course to check
+        String courseId = JOptionPane.showInputDialog(this, "Enter Course ID to view enrollment list:");
+        if (courseId == null || courseId.isBlank()) return;
+
+        // Send request to server
+        sendRequest(new Message(MessageType.LIST_ENROLLMENT, Status.NULL, courseId.trim()));
+    }
+
     private void generateReport() { sendRequest(new Message(MessageType.GET_REPORT, Status.NULL, "")); }
 
     private void sendRequest(Message msg) {

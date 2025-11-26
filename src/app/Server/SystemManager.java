@@ -11,14 +11,18 @@ import app.Shared.UserType;
 public class SystemManager {
 
     private static SystemManager instance; 
+    private HashMap<String, University> universities;
     private University university;
+
 
     public static synchronized SystemManager getInstance() {
         if (instance == null) instance = new SystemManager();
         return instance;
     }
 
-    private SystemManager() {}
+    private SystemManager() {
+    	this.universities = new HashMap<>();
+    }
     
     //to store user
     public User findUser(String username) {
@@ -28,28 +32,61 @@ public class SystemManager {
 
     // to be called at the start of the server to load info.
     public void loadUniversity(University uni) {
-        this.university = uni;
+    	if (uni == null) return;
+
+        // Store the university into the universities map
+        universities.put(uni.getUniversityName(), uni);
+
+        // Set it as active only if none is active yet
+        if (this.university == null) {
+            this.university = uni;
+        }
         
         // If this is the very first run, empty csv files, then we create dummy data so you can login.
-        if (this.university.getAllUsers().isEmpty()) {
+        if (uni.getAllUsers().isEmpty()) {
             System.out.println("SystemManager : No data is found. Creating default Admin and Student.");
             
-            this.university.addAdmin(new Admin("admin", "admin", "Admin", "Admin", "A0001"));
+            uni.addAdmin(new Admin("admin", "admin", "Admin", "Admin", "A0001"));
             
-            this.university.addStudent(new Student("student", "password", "Student", "Test", "S0001"));
+            uni.addStudent(new Student("student", "password", "Student", "Test", "S0001"));
             
-            this.university.addCourse(new Course("CS401", "Software Engineering", "MW 6:30", "Online", 3, "Dr. Smith", 35, 0));
-            this.university.addCourse(new Course("PHY101", "Physics", "TTH 11:00", "Room N237", 4, "Dr. Tannon", 35, 0));
+            uni.addCourse(new Course("CS401", "Software Engineering", "MW 6:30", "Online", 3, "Dr. Smith", 35, 0));
+            uni.addCourse(new Course("PHY101", "Physics", "TTH 11:00", "Room N237", 4, "Dr. Tannon", 35, 0));
         }
     }
+ // For universities
+    public void addUniversity(String name) {
+        if (universities.containsKey(name)) return;
+        universities.put(name, new University(name));
+    }
+
+    public boolean setActiveUniversity(String name) {
+        University uni = universities.get(name);
+        if (uni == null) return false;
+        university = uni;
+        return true;
+    }
+
+    public University getActiveUniversity() {
+        return university;
+    }
+
+    public Collection<String> getAllUniversityNames() {
+        return universities.keySet();
+    }
+    
 
     public Message authenticateUser(String username, String password) {
+        if (university == null) {
+            return new Message(MessageType.LOGIN, Status.FAIL, "No university selected.");
+        }
         User user = university.getUser(username);
         if (user == null) return new Message(MessageType.LOGIN, Status.FAIL, "Username not found.");
         
         if (user.checkPassword(password)) return new Message(MessageType.LOGIN, Status.SUCCESS, user.getUserType(), "Login OK");
         return new Message(MessageType.LOGIN, Status.FAIL, "Invalid Password");
     }
+    
     
     // Core processes
     // For Students
@@ -211,7 +248,20 @@ public class SystemManager {
         }
         return new Message(MessageType.VIEW_STUDENTS, Status.SUCCESS, "Students", list);
     }
+    
+    public Message getAllUniversities() {
+    	ArrayList<String> list = new ArrayList<>();
 
+        for (String uniName : universities.keySet()) {
+            list.add(uniName);
+        }
+        
+        if (list.isEmpty()) {
+            return new Message(MessageType.VIEW_UNIVERSITIES, Status.SUCCESS, "No universities found.");
+        }
+        return new Message(MessageType.VIEW_UNIVERSITIES, Status.SUCCESS, "Available Universities:", list);
+    }
+    
     public Message getReport() {
 
         Report report = new Report("Enrollment Summary");
@@ -299,6 +349,7 @@ public class SystemManager {
         return new Message(MessageType.LIST_ENROLLMENT, Status.SUCCESS,
                            "Enrollment List for " + courseId, displayList);
     }
+    
     // Add methods for waitlist and pre req
 
 }
