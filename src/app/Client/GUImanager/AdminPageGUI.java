@@ -143,11 +143,11 @@ public class AdminPageGUI extends JFrame {
     }
 
     private void createCourse() {
-        String courseId = JOptionPane.showInputDialog(this, "Enter Course ID:");
-        if (courseId == null) return;
+        String courseId = JOptionPane.showInputDialog(this, "Enter Course ID (e.g. CS401):", "Create Course", JOptionPane.QUESTION_MESSAGE);
+        if (courseId == null || courseId.isBlank()) return;
         
-        String courseName = JOptionPane.showInputDialog(this, "Enter Course Name:");
-        if (courseName == null) return;
+        String courseName = JOptionPane.showInputDialog(this, "Enter Course Name:", "Create Course", JOptionPane.QUESTION_MESSAGE);
+        if (courseName == null || courseName.isBlank()) return;
         
         ArrayList<String> args = new ArrayList<>();
         args.add(courseId.trim());
@@ -163,8 +163,8 @@ public class AdminPageGUI extends JFrame {
     }
 
     private void deleteCourse() {
-        String courseId = JOptionPane.showInputDialog(this, "Enter Course ID to delete:");
-        if (courseId == null) return;
+        String courseId = JOptionPane.showInputDialog(this, "Enter Course ID to delete (e.g. CS401):", "Delete Course", JOptionPane.QUESTION_MESSAGE);
+        if (courseId == null || courseId.isBlank()) return;
         sendRequest(new Message(MessageType.REMOVE_COURSE, Status.NULL, courseId.trim()));
     }
 
@@ -195,15 +195,14 @@ public class AdminPageGUI extends JFrame {
     }
     
     private void editCourse() { 
-        
-        String courseId = JOptionPane.showInputDialog(this, "Enter ID of Course to Edit: ");
+        String courseId = JOptionPane.showInputDialog(this, "Enter Course ID to Edit (e.g. CS401):", "Edit Course", JOptionPane.QUESTION_MESSAGE);
         if (courseId == null || courseId.isBlank()) return;
 
-        String newName = JOptionPane.showInputDialog(this, "Enter New Course Name: ");
-        if (newName == null) return;
+        String newName = JOptionPane.showInputDialog(this, "Enter New Course Name:", "Edit Course", JOptionPane.QUESTION_MESSAGE);
+        if (newName == null || newName.isBlank()) return;
         
-        String newCapacity = JOptionPane.showInputDialog(this, "Enter New Capacity:");
-        if (newCapacity == null) return;
+        String newCapacity = JOptionPane.showInputDialog(this, "Enter New Capacity:", "Edit Course", JOptionPane.QUESTION_MESSAGE);
+        if (newCapacity == null || newCapacity.isBlank()) return;
 
         ArrayList<String> args = new ArrayList<>();
         args.add(courseId.trim());
