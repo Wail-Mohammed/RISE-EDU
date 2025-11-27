@@ -42,7 +42,7 @@ public class AdminPageGUI extends JFrame {
         title.setFont(title.getFont().deriveFont(Font.BOLD, 28f));
         wrapper.add(title, BorderLayout.NORTH);
 
-        JPanel grid = new JPanel(new GridLayout(2, 4, 20, 20));
+        JPanel grid = new JPanel(new GridLayout(3, 4, 20, 20));
         grid.setOpaque(false);
         
         grid.add(createActionButton("Add User", e -> addUser()));
@@ -55,6 +55,7 @@ public class AdminPageGUI extends JFrame {
         grid.add(createActionButton("Withdraw student", e -> withdrawStudent()));
         grid.add(createActionButton("View Enrollment List", e -> viewEnrollmentList()));
         grid.add(createActionButton("View Universties", e -> viewUniversties()));
+        grid.add(createActionButton("View Admins", e -> viewAdmins()));
         
 
         wrapper.add(grid, BorderLayout.CENTER);
@@ -214,6 +215,10 @@ public class AdminPageGUI extends JFrame {
 
     private void viewStudents() { 
         sendRequest(new Message(MessageType.VIEW_STUDENTS, Status.NULL, "")); 
+    }
+    
+    private void viewAdmins() { 
+        sendRequest(new Message(MessageType.VIEW_ADMINS, Status.NULL, "")); 
     }
     
     private void withdrawStudent() {

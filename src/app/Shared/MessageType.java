@@ -20,6 +20,7 @@ public enum MessageType {
     EDIT_COURSE,
     REMOVE_COURSE,
     VIEW_STUDENTS,
+    VIEW_ADMINS,
     VIEW_STUDENT_SCHEDULE,
     REPORT,
     ADD_HOLD,

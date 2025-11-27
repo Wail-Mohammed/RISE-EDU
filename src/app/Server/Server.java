@@ -162,6 +162,9 @@ public class Server {
                             case VIEW_STUDENTS:
                                 response = manager.getAllStudents();
                                 break;
+                            case VIEW_ADMINS:
+                                response = manager.getAllAdmins();
+                                break;
                             case GET_REPORT:
                                 response = manager.getReport();
                                 break;

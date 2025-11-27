@@ -273,6 +273,14 @@ public class SystemManager {
         return new Message(MessageType.VIEW_STUDENTS, Status.SUCCESS, "Students", list);
     }
     
+    public Message getAllAdmins() {
+        ArrayList<String> list = new ArrayList<>();
+        for (Admin a : university.getAllAdmins()) {
+            list.add(a.getAdminId() + ": " + a.getFirstName() + " " + a.getLastName() + " (" + a.getUsername() + ")");
+        }
+        return new Message(MessageType.VIEW_ADMINS, Status.SUCCESS, "Administrators", list);
+    }
+    
     public Message getAllUniversities() {
     	ArrayList<String> list = new ArrayList<>();
 
