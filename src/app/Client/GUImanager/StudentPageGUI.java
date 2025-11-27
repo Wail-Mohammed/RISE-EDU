@@ -45,20 +45,31 @@ public class StudentPageGUI extends JFrame {
         title.setFont(title.getFont().deriveFont(Font.BOLD, 32f));
         wrapper.add(title, BorderLayout.NORTH);
 
-        JPanel grid = new JPanel(new GridLayout(2, 2, 30, 30));
+        JPanel grid = new JPanel(new GridLayout(2, 3, 30, 30));
         grid.setOpaque(false);
 
         JButton addCourseButton = createActionButton("Add a course", e -> addCourse());
         JButton dropCourseButton = createActionButton("Drop a course", e -> dropCourse());
         JButton viewScheduleButton = createActionButton("View schedule", e -> viewSchedule());
         JButton viewCoursesButton = createActionButton("View courses", e -> viewCourses());
+        JButton viewHoldButton = createActionButton("View hold", e -> viewHold());
 
         grid.add(addCourseButton);
         grid.add(dropCourseButton);
         grid.add(viewScheduleButton);
         grid.add(viewCoursesButton);
+        grid.add(viewHoldButton);
 
         wrapper.add(grid, BorderLayout.CENTER);
+        
+        // Add Logout button at the bottom
+        JPanel logoutPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        logoutPanel.setOpaque(false);
+        logoutPanel.setBorder(BorderFactory.createEmptyBorder(20, 0, 0, 0));
+        JButton logoutButton = createLogoutButton();
+        logoutPanel.add(logoutButton);
+        wrapper.add(logoutPanel, BorderLayout.SOUTH);
+        
         return wrapper;
     }
 
@@ -72,6 +83,19 @@ public class StudentPageGUI extends JFrame {
         button.setBorder(BorderFactory.createEmptyBorder(25, 25, 25, 25));
         button.setOpaque(true);
         button.addActionListener(action);
+        return button;
+    }
+
+    private JButton createLogoutButton() {
+        JButton button = new JButton("Logout");
+        button.setPreferredSize(new Dimension(150, 40));
+        button.setBackground(new Color(200, 80, 80)); // 红色，表示退出操作
+        button.setForeground(Color.WHITE);
+        button.setFont(button.getFont().deriveFont(Font.BOLD, 14f));
+        button.setFocusPainted(false);
+        button.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
+        button.setOpaque(true);
+        button.addActionListener(e -> logout());
         return button;
     }
 
@@ -98,11 +122,85 @@ public class StudentPageGUI extends JFrame {
         sendRequest(new Message(MessageType.LIST_COURSES, Status.NULL, ""));
     }
 
+    private void viewHold() {
+        sendRequest(new Message(MessageType.VIEW_HOLD, Status.NULL, ""));
+    }
+
+    private void logout() {
+        int confirm = JOptionPane.showConfirmDialog(
+            this,
+            "Are you sure you want to logout?",
+            "Confirm Logout",
+            JOptionPane.YES_NO_OPTION,
+            JOptionPane.QUESTION_MESSAGE
+        );
+        
+        if (confirm == JOptionPane.YES_OPTION) {
+            try {
+                // Send logout message to server
+                Message logoutMsg = new Message(MessageType.LOGOUT, Status.NULL, "");
+                Message response = client.send(logoutMsg);
+                
+                // Disconnect from server
+                client.disconnect();
+                
+           
+                dispose();
+                
+                // Return to login page
+                Client newClient = new Client();
+                LoginPage.launch(newClient);
+            } catch (Exception e) {
+                
+                client.disconnect();
+                dispose();
+                
+                // Still return to login page
+                Client newClient = new Client();
+                LoginPage.launch(newClient);
+            }
+        }
+    }
+
     private void sendRequest(Message msg) {
         try {
             Message response = client.send(msg);
             
             if (response.getStatus() == Status.SUCCESS) {
+                //  Add course ID 
+                if (msg.getType() == MessageType.ENROLL_COURSE) {
+                    // Get course ID from the request message 
+                    String courseId = msg.getText().trim();
+                    // Append course ID to the server response text
+                    String displayText = response.getText() + " (" + courseId + ")";
+                    JOptionPane.showMessageDialog(this, displayText, "Success", JOptionPane.INFORMATION_MESSAGE);
+                    return;
+                }
+                
+                
+                // Special handling for VIEW_HOLD
+                if (msg.getType() == MessageType.VIEW_HOLD) {
+                    if (response.getList() != null && !response.getList().isEmpty()) {
+                        // Has holds - show list with warning (consistent with AdminPageGUI format)
+                        StringBuilder sb = new StringBuilder(response.getText() + "\n\n");
+                        for (String item : response.getList()) {
+                            sb.append(item).append("\n");
+                        }
+                        JTextArea textArea = new JTextArea(sb.toString());
+                        textArea.setEditable(false);
+                        JScrollPane scrollPane = new JScrollPane(textArea);
+                        textArea.setLineWrap(true);
+                        textArea.setWrapStyleWord(true);
+                        textArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
+                        scrollPane.setPreferredSize(new Dimension(500, 200));
+                        JOptionPane.showMessageDialog(this, scrollPane, "Account Holds", JOptionPane.WARNING_MESSAGE);
+                    } else {
+                        // No holds - simple message
+                        JOptionPane.showMessageDialog(this, response.getText(), "Hold Status", JOptionPane.INFORMATION_MESSAGE);
+                    }
+                    return;
+                }
+                
                 // If we got a list back (like schedule or courses), we format it nicely
                 if (response.getList() != null && !response.getList().isEmpty()) {
                     StringBuilder sb = new StringBuilder(response.getText() + "\n\n");
