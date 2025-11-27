@@ -101,25 +101,45 @@ public class AdminPageGUI extends JFrame {
         String[] types = {"STUDENT", "ADMIN"};
         int type = JOptionPane.showOptionDialog(this, "Select Type", "Add User",
                 JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null, types, types[0]);
+        
+        // If user cancelled type selection, return
+        if (type == JOptionPane.CLOSED_OPTION) return;
                 
         String userType = (type == 0) ? "STUDENT" : "ADMIN";
-        String username = JOptionPane.showInputDialog("Username:");
-        String password = JOptionPane.showInputDialog("Password:");
-        String first = JOptionPane.showInputDialog("First Name:");
-        String last = JOptionPane.showInputDialog("Last Name:");
-        String id = JOptionPane.showInputDialog("ID (e.g. S005):");
-
-        if (username != null && id != null) {
-            ArrayList<String> args = new ArrayList<>();
-            args.add(userType);
-            args.add(username);
-            args.add(password);
-            args.add(first);
-            args.add(last);
-            args.add(id);
-            
-            sendRequest(new Message(MessageType.ADD_USER, Status.NULL, "Add User", args));
+        
+        // Collect user information, each step can be cancelled
+        String username = JOptionPane.showInputDialog(this, "Username:", "Add User", JOptionPane.QUESTION_MESSAGE);
+        if (username == null || username.isBlank()) return;
+        
+        String password = JOptionPane.showInputDialog(this, "Password:", "Add User", JOptionPane.QUESTION_MESSAGE);
+        if (password == null || password.isBlank()) return;
+        
+        String first = JOptionPane.showInputDialog(this, "First Name:", "Add User", JOptionPane.QUESTION_MESSAGE);
+        if (first == null || first.isBlank()) return;
+        
+        String last = JOptionPane.showInputDialog(this, "Last Name:", "Add User", JOptionPane.QUESTION_MESSAGE);
+        if (last == null || last.isBlank()) return;
+        
+        // Display different ID example based on user type
+        String idPrompt;
+        if (userType.equals("ADMIN")) {
+            idPrompt = "ID (e.g. A0001):";
+        } else {
+            idPrompt = "ID (e.g. S005):";
         }
+        String id = JOptionPane.showInputDialog(this, idPrompt, "Add User", JOptionPane.QUESTION_MESSAGE);
+        if (id == null || id.isBlank()) return;
+
+        // Send request
+        ArrayList<String> args = new ArrayList<>();
+        args.add(userType);
+        args.add(username.trim());
+        args.add(password.trim());
+        args.add(first.trim());
+        args.add(last.trim());
+        args.add(id.trim());
+        
+        sendRequest(new Message(MessageType.ADD_USER, Status.NULL, "Add User", args));
     }
 
     private void createCourse() {
