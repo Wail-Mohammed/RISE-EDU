@@ -168,6 +168,14 @@ public class Server {
                             case REMOVE_HOLD:
                                 response = manager.removeHoldOnAccount(message.getList().get(0), message.getList().get(1));
                                 break;
+                            case WITHDRAW_STUDENT:
+                                Message dropResult = manager.processDrop(message.getList().get(0), message.getList().get(1));
+                                // Create new message with correct message type
+                                response = new Message(MessageType.WITHDRAW_STUDENT, dropResult.getStatus(), dropResult.getText());
+                                break;
+                            case LIST_ENROLLMENT:
+                                response = manager.getEnrollmentList(message.getText());
+                                break;
                             case EDIT_COURSE:
                                 response = manager.editCourse(message.getList());
                                 break;
