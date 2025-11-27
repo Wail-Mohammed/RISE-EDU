@@ -14,7 +14,13 @@ public class Course implements Serializable {
     private int maxCapacity;
     
     // Tracks current enrollment
-    private ArrayList<String> enrolledStudents; 
+    private ArrayList<String> enrolledStudents;
+    
+    // using this for the Ids of prereq courses
+    private ArrayList<String> prerequisites = new ArrayList<>();
+    
+    // 
+    private ArrayList<String> waitlist = new ArrayList<>();
 
     public Course(String courseId, String title, String time, String location, int credits, String instructor, int maxCapacity, int currentEnrollment) {
         this.courseId = courseId;
@@ -63,6 +69,23 @@ public class Course implements Serializable {
 
     public void dropStudent(String username) {
         enrolledStudents.remove(username);
+    }
+    
+    public ArrayList<String> getPrerequisites() {
+    	return prerequisites;
+    }
+    
+    public void addPrerequisite(String courseId) {
+    	prerequisites.add(courseId);
+    }
+    
+    public int waitlistPlaced(String usrname) {
+    	waitlist.add(usrname);
+    	return waitlist.size();
+    }
+    
+    public ArrayList<String> getWaitlist() {
+    	return waitlist;
     }
 
 	public void setTitle(String newTitle) {

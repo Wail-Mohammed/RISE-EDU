@@ -61,11 +61,20 @@ public class SystemManager {
         if (course == null) return new Message(MessageType.ENROLL_COURSE, Status.FAIL, "Course is not found.");
         
         if (student.hasHolds()) return new Message(MessageType.ENROLL_COURSE, Status.FAIL, "Cannot Enroll Due to Hold: " + student.getHolds().get(0));
-        // add a check for pre req
+        
+        if (!prereqCheck(student, course)) {
+        	return new Message(MessageType.ENROLL_COURSE, Status.FAIL, "You have not met the prerequisite for " +course.getTitle());
+
+    }
+
         if (course.enrollStudent(studentUsername)) {
             student.getSchedule().addCourse(course);
             return new Message(MessageType.ENROLL_COURSE, Status.SUCCESS, "Enrolled in " + course.getTitle());
         }
+        
+        // using this to add student to waitlist
+        int post = course.waitlistPlaced(studentUsername);
+        
         return new Message(MessageType.ENROLL_COURSE, Status.FAIL, "Unfortunately, this course is full.");
     }
 
@@ -300,5 +309,49 @@ public class SystemManager {
                            "Enrollment List for " + courseId, displayList);
     }
     // Add methods for waitlist and pre req
+    
+    private boolean prereqCheck(Student student, Course course) {    
+        ArrayList<String> prereqC = course.getPrerequisites();
+        if (prereqC == null || prereqC.isEmpty()) {
+        	return true; // to deem it ok if there are no prereqs
+        }
+        // using this to get an info of the courses the student has scheduled as at now 
+        ArrayList<String> currCourseIds = new ArrayList<>();
+            for (Course scheduled : student.getSchedule().getCourses()) {
+        		currCourseIds.add(scheduled.getCourseId());
+        	}
+        		
+        	// using this to look through the prerequisites for a particular course being met before they can enroll
+        	for (String reqdId : prereqC) {
+        		if (!currCourseIds.contains(reqdId)) {
+        			return false;
+        		}	
+         	}
+        	return true;
 
 }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
