@@ -165,6 +165,10 @@ public class Server {
                             case VIEW_ADMINS:
                                 response = manager.getAllAdmins();
                                 break;
+                            case VIEW_STUDENT_SCHEDULE:
+                                // Args: studentId in message.getText()
+                                response = manager.getStudentScheduleByStudentId(message.getText());
+                                break;
                             case GET_REPORT:
                                 response = manager.getReport();
                                 break;

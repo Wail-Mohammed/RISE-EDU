@@ -146,6 +146,43 @@ public class SystemManager {
         if (displayList.isEmpty()) return new Message(MessageType.VIEW_SCHEDULE, Status.SUCCESS, "Schedule is Empty.");
         return new Message(MessageType.VIEW_SCHEDULE, Status.SUCCESS, "Schedule:", displayList);
     }
+    
+    public Message getStudentScheduleByStudentId(String studentId) {
+        // Search by studentId 
+        Student student = null;
+        for (Student s : university.getAllStudents()) {
+            if (s.getStudentId().equals(studentId)) {
+                student = s;
+                break;
+            }
+        }
+        
+        if (student == null) {
+            return new Message(MessageType.VIEW_STUDENT_SCHEDULE, Status.FAIL, "Student ID not found.");
+        }
+        
+        ArrayList<String> displayList = new ArrayList<>();
+        for (Course c : student.getSchedule().getCourses()) {
+            // Format: CourseID|CourseName|Time|Instructor|Credits|Enrollment/Capacity
+            String courseData = String.format("%s|%s|%s|%s|%d|%d/%d", 
+                c.getCourseId(), 
+                c.getTitle(), 
+                c.getTime(), 
+                c.getInstructor(),
+                c.getCredits(),
+                c.getCurrentEnrollment(), 
+                c.getMaxCapacity()
+            );        	
+            displayList.add(courseData);
+        }
+        
+        if (displayList.isEmpty()) {
+            return new Message(MessageType.VIEW_STUDENT_SCHEDULE, Status.SUCCESS, 
+                "Schedule for " + student.getFirstName() + " " + student.getLastName() + " (" + studentId + ") is empty.");
+        }
+        return new Message(MessageType.VIEW_STUDENT_SCHEDULE, Status.SUCCESS, 
+            "Schedule for " + student.getFirstName() + " " + student.getLastName() + " (" + studentId + "):", displayList);
+    }
 
     // For Admins
     public Message addUser(ArrayList<String> args) {

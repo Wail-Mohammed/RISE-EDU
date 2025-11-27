@@ -214,7 +214,16 @@ public class AdminPageGUI extends JFrame {
     }
 
     private void viewStudents() { 
-        sendRequest(new Message(MessageType.VIEW_STUDENTS, Status.NULL, "")); 
+        // Ask admin to input student ID
+        String studentId = JOptionPane.showInputDialog(this, 
+            "Enter Student ID (e.g. S0011):", 
+            "View Student Schedule", 
+            JOptionPane.QUESTION_MESSAGE);
+        
+        if (studentId == null || studentId.isBlank()) return;
+        
+        // Send request to view student schedule
+        sendRequest(new Message(MessageType.VIEW_STUDENT_SCHEDULE, Status.NULL, studentId.trim()));
     }
     
     private void viewAdmins() { 
@@ -385,6 +394,49 @@ public class AdminPageGUI extends JFrame {
                         JOptionPane.PLAIN_MESSAGE,
                         null  // no icon
                     );
+                    return;
+                }
+                
+                // Special handling for VIEW_STUDENT_SCHEDULE - use JTable for better display
+                if (msg.getType() == MessageType.VIEW_STUDENT_SCHEDULE && 
+                    response.getList() != null && !response.getList().isEmpty()) {
+                    
+                    // Parse course data and create table
+                    String[] columnNames = {"Course ID", "Course Title", "Class Time", "Instructor", "Credits", "Enrollment/Capacity"};
+                    ArrayList<String[]> tableData = new ArrayList<>();
+                    
+                    for (String item : response.getList()) {
+                        String[] parts = item.split("\\|");
+                        if (parts.length >= 6) {
+
+                            tableData.add(new String[]{
+                                parts[0],  // Course ID
+                                parts[1],  // Course Title
+                                parts[2],  // Time
+                                parts[3],  // Instructor
+                                parts[4] + " Credits",  // Credits
+                                "[" + parts[5] + "]"  // Enrollment/Capacity (format: "current/max")
+                            });
+                        }
+                    }
+                    
+                    String[][] data = tableData.toArray(new String[tableData.size()][]);
+                    JTable table = new JTable(data, columnNames);
+                    table.setFont(new Font("Monospaced", Font.PLAIN, 12));
+                    table.setRowHeight(20);
+                    table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+                    table.getColumnModel().getColumn(0).setPreferredWidth(80);   // Course ID
+                    table.getColumnModel().getColumn(1).setPreferredWidth(250);  // Course Title
+                    table.getColumnModel().getColumn(2).setPreferredWidth(120);  // Class Time
+                    table.getColumnModel().getColumn(3).setPreferredWidth(150);  // Instructor
+                    table.getColumnModel().getColumn(4).setPreferredWidth(80);   // Credits
+                    table.getColumnModel().getColumn(5).setPreferredWidth(150);  // Enrollment/Capacity
+                    table.setEnabled(false); // Make table read-only
+                    
+                    JScrollPane scrollPane = new JScrollPane(table);
+                    scrollPane.setPreferredSize(new Dimension(850, 300));
+                    
+                    JOptionPane.showMessageDialog(this, scrollPane, response.getText(), JOptionPane.INFORMATION_MESSAGE);
                     return;
                 }
                 
