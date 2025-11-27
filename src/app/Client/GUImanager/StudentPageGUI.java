@@ -45,18 +45,20 @@ public class StudentPageGUI extends JFrame {
         title.setFont(title.getFont().deriveFont(Font.BOLD, 32f));
         wrapper.add(title, BorderLayout.NORTH);
 
-        JPanel grid = new JPanel(new GridLayout(2, 2, 30, 30));
+        JPanel grid = new JPanel(new GridLayout(2, 3, 30, 30));
         grid.setOpaque(false);
 
         JButton addCourseButton = createActionButton("Add a course", e -> addCourse());
         JButton dropCourseButton = createActionButton("Drop a course", e -> dropCourse());
         JButton viewScheduleButton = createActionButton("View schedule", e -> viewSchedule());
         JButton viewCoursesButton = createActionButton("View courses", e -> viewCourses());
+        JButton viewHoldButton = createActionButton("View hold", e -> viewHold());
 
         grid.add(addCourseButton);
         grid.add(dropCourseButton);
         grid.add(viewScheduleButton);
         grid.add(viewCoursesButton);
+        grid.add(viewHoldButton);
 
         wrapper.add(grid, BorderLayout.CENTER);
         
@@ -120,6 +122,10 @@ public class StudentPageGUI extends JFrame {
         sendRequest(new Message(MessageType.LIST_COURSES, Status.NULL, ""));
     }
 
+    private void viewHold() {
+        sendRequest(new Message(MessageType.VIEW_HOLD, Status.NULL, ""));
+    }
+
     private void logout() {
         int confirm = JOptionPane.showConfirmDialog(
             this,
@@ -168,6 +174,30 @@ public class StudentPageGUI extends JFrame {
                     // Append course ID to the server response text
                     String displayText = response.getText() + " (" + courseId + ")";
                     JOptionPane.showMessageDialog(this, displayText, "Success", JOptionPane.INFORMATION_MESSAGE);
+                    return;
+                }
+                
+                
+                // Special handling for VIEW_HOLD
+                if (msg.getType() == MessageType.VIEW_HOLD) {
+                    if (response.getList() != null && !response.getList().isEmpty()) {
+                        // Has holds - show list with warning (consistent with AdminPageGUI format)
+                        StringBuilder sb = new StringBuilder(response.getText() + "\n\n");
+                        for (String item : response.getList()) {
+                            sb.append(item).append("\n");
+                        }
+                        JTextArea textArea = new JTextArea(sb.toString());
+                        textArea.setEditable(false);
+                        JScrollPane scrollPane = new JScrollPane(textArea);
+                        textArea.setLineWrap(true);
+                        textArea.setWrapStyleWord(true);
+                        textArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
+                        scrollPane.setPreferredSize(new Dimension(500, 200));
+                        JOptionPane.showMessageDialog(this, scrollPane, "Account Holds", JOptionPane.WARNING_MESSAGE);
+                    } else {
+                        // No holds - simple message
+                        JOptionPane.showMessageDialog(this, response.getText(), "Hold Status", JOptionPane.INFORMATION_MESSAGE);
+                    }
                     return;
                 }
                 

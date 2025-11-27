@@ -150,6 +150,9 @@ public class Server {
                             case LIST_COURSES:
                                 response = manager.getAllCourses();
                                 break;
+                            case VIEW_HOLD:
+                                response = manager.getStudentHolds(currentUser.getUsername());
+                                break;
                             case CREATE_COURSE:
                                 response = manager.createCourse(message.getList());
                                 break;
@@ -180,10 +183,7 @@ public class Server {
                                 response = manager.editCourse(message.getList());
                                 break;
                             case VIEW_UNIVERSITIES:
-                                response = SystemManager.getInstance().getAllUniversities();
-                                break;
-                            case LIST_ENROLLMENT:
-                                response = SystemManager.getInstance().getEnrollmentList(message.getText());
+                                response = manager.getAllUniversities();
                                 break;
                             default:
                                 response = new Message(type, Status.FAIL, "Unknown request.");

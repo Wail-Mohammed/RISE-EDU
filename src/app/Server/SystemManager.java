@@ -223,6 +223,30 @@ public class SystemManager {
         return new Message(MessageType.REMOVE_HOLD, Status.FAIL, "Student Not Found");
     }
 
+    public Message getStudentHolds(String studentUsername) {
+        Student student = university.getStudent(studentUsername);
+        
+        if (student == null) {
+            return new Message(MessageType.VIEW_HOLD, Status.FAIL, "Student not found.");
+        }
+        
+        if (!student.hasHolds()) {
+            return new Message(MessageType.VIEW_HOLD, Status.SUCCESS, 
+                "No holds on your account. You are clear to enroll in courses.");
+        }
+        
+        // Student has holds
+        ArrayList<String> holdList = new ArrayList<>();
+        holdList.add("You have " + student.getHolds().size() + " hold(s) on your account:");
+        for (String hold : student.getHolds()) {
+            holdList.add("  • " + hold);
+        }
+        holdList.add("\nPlease contact the administration office to resolve these holds.");
+        
+        return new Message(MessageType.VIEW_HOLD, Status.SUCCESS, 
+            "Account Holds", holdList);
+    }
+
     public Message getAllCourses() {
         ArrayList<String> list = new ArrayList<>();
         for (Course c : university.getAllCourses()) {

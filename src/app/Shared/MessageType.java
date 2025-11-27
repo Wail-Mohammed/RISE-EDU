@@ -12,6 +12,7 @@ public enum MessageType {
     CHECK_PREREQS,  
     VIEW_SCHEDULE,  
     LIST_COURSES,
+    VIEW_HOLD,
     
     // Admin Use Cases   
     GET_REPORT,     
