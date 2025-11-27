@@ -179,6 +179,12 @@ public class Server {
                             case EDIT_COURSE:
                                 response = manager.editCourse(message.getList());
                                 break;
+                            case VIEW_UNIVERSITIES:
+                                response = SystemManager.getInstance().getAllUniversities();
+                                break;
+                            case LIST_ENROLLMENT:
+                                response = SystemManager.getInstance().getEnrollmentList(message.getText());
+                                break;
                             default:
                                 response = new Message(type, Status.FAIL, "Unknown request.");
                         }
