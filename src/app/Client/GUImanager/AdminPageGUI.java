@@ -42,7 +42,7 @@ public class AdminPageGUI extends JFrame {
         title.setFont(title.getFont().deriveFont(Font.BOLD, 28f));
         wrapper.add(title, BorderLayout.NORTH);
 
-        JPanel grid = new JPanel(new GridLayout(3, 3, 20, 20));
+        JPanel grid = new JPanel(new GridLayout(2, 4, 20, 20));
         grid.setOpaque(false);
         
         grid.add(createActionButton("Add User", e -> addUser()));
@@ -58,6 +58,15 @@ public class AdminPageGUI extends JFrame {
         
 
         wrapper.add(grid, BorderLayout.CENTER);
+        
+        // Add Logout button at the bottom
+        JPanel logoutPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        logoutPanel.setOpaque(false);
+        logoutPanel.setBorder(BorderFactory.createEmptyBorder(20, 0, 0, 0));
+        JButton logoutButton = createLogoutButton();
+        logoutPanel.add(logoutButton);
+        wrapper.add(logoutPanel, BorderLayout.SOUTH);
+        
         return wrapper;
     }
 
@@ -71,6 +80,19 @@ public class AdminPageGUI extends JFrame {
         button.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
         button.setOpaque(true);
         button.addActionListener(action);
+        return button;
+    }
+
+    private JButton createLogoutButton() {
+        JButton button = new JButton("Logout");
+        button.setPreferredSize(new Dimension(150, 40));
+        button.setBackground(new Color(200, 80, 80)); 
+        button.setForeground(Color.WHITE);
+        button.setFont(button.getFont().deriveFont(Font.BOLD, 14f));
+        button.setFocusPainted(false);
+        button.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
+        button.setOpaque(true);
+        button.addActionListener(e -> logout());
         return button;
     }
 
@@ -258,6 +280,42 @@ public class AdminPageGUI extends JFrame {
     }
 
     private void generateReport() { sendRequest(new Message(MessageType.GET_REPORT, Status.NULL, "")); }
+
+    private void logout() {
+        int confirm = JOptionPane.showConfirmDialog(
+            this,
+            "Are you sure you want to logout?",
+            "Confirm Logout",
+            JOptionPane.YES_NO_OPTION,
+            JOptionPane.QUESTION_MESSAGE
+        );
+        
+        if (confirm == JOptionPane.YES_OPTION) {
+            try {
+                // Send logout message to server
+                Message logoutMsg = new Message(MessageType.LOGOUT, Status.NULL, "");
+                Message response = client.send(logoutMsg);
+                
+                // Disconnect from server
+                client.disconnect();
+                
+                // Close the admin dashboard
+                dispose();
+                
+                // Return to login page
+                Client newClient = new Client();
+                LoginPage.launch(newClient);
+            } catch (Exception e) {
+                // Even if there's an error, close the window and disconnect
+                client.disconnect();
+                dispose();
+                
+                // Still return to login page
+                Client newClient = new Client();
+                LoginPage.launch(newClient);
+            }
+        }
+    }
 
     private void sendRequest(Message msg) {
         try {
