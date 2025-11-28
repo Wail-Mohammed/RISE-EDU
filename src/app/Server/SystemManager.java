@@ -228,7 +228,7 @@ public class SystemManager {
     }
 
     public Message getReport() {
-        Report report = new Report("Enrollment Summary");
+        Report report = new Report("Enrollment Summary", "RISE-EDU");
         
         StringBuilder sb = new StringBuilder();
         sb.append("RISE-EDU SYSTEM REPORT\n");
@@ -238,6 +238,29 @@ public class SystemManager {
         for (Course c : university.getAllCourses()) {
             sb.append(String.format("%s: %s (%d/%d students)\n", 
                 c.getCourseId(), c.getTitle(), c.getCurrentEnrollment(), c.getMaxCapacity()));
+            
+            sb.append("Instructor: ").append(c.getInstructor()).append("\n");
+            sb.append("Credits: ").append(c.getCredits()).append("\n");
+            sb.append("Days & Time: ").append(c.getTime()).append("\n");
+            sb.append("Capacity(Size): ").append(c.getMaxCapacity()).append(" (Enrolled: ").append(c.getCurrentEnrollment()).append(")\n");
+            
+            // for Waitlist
+            List<String> waitlist = c.getWaitlist();
+            if (waitlist == null || waitlist.isEmpty()) {
+            	sb.append("Waitlist : None\n");
+            }else {
+            	sb.append("Waitlist : ").append(waitlist).append("\n");
+            }
+            
+            // For prereq
+            
+            List<String> prereqs = c.getPrerequisites();
+            if (prereqs == null || prereqs.isEmpty()) {
+             	sb.append("Prerequisites : None\n");
+            }else {
+            	sb.append("Prerequisites : ").append(prereqs).append("\n");
+            }
+            
         }
         
         sb.append("\n------------- STUDENTS ------------\n");
