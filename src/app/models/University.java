@@ -20,7 +20,9 @@ public class University implements Serializable {
         this.courseCatalog = new HashMap<>();
     }
     
-
+    public String getUniversityName() {
+        return universityName;
+    }
 
     public Course getCourse(String id) {
         return courseCatalog.get(id);
@@ -48,6 +50,10 @@ public class University implements Serializable {
         return students.values();
     }
     
+    public Collection<Admin> getAllAdmins() {
+        return admins.values();
+    }
+    
     public ArrayList<User> getAllUsers() {
         ArrayList<User> all = new ArrayList<>(students.values());
         all.addAll(admins.values());
@@ -66,4 +72,13 @@ public class University implements Serializable {
     public void addCourse(Course course) {
         if (course != null) courseCatalog.put(course.getCourseId(), course);
     }
+    
+    public boolean removeCourse(String course) {
+        if (courseCatalog.containsKey(course)) {
+            courseCatalog.remove(course);
+            return true;
+        }
+        return false;
+    }
+
 }

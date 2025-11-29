@@ -297,5 +297,24 @@ public class SystemManagerTester {
     	// now second student to be on the waitlist for first course1
     	assertEquals(1, course1.getWaitlist().size());
     	assertTrue(course1.getWaitlist().contains("student2"));
+    void testAddAndGetAllUniversities() {
+        // Add a second university
+        manager.addUniversity("U2");
+        
+        var allUnis = manager.getAllUniversities();
+        ArrayList<String> uniNames = allUnis.getList();  // Assuming getAllUniversities returns a Message
+        
+        assertEquals(Status.SUCCESS, allUnis.getStatus());
+        assertTrue(uniNames.contains("U"));
+        assertTrue(uniNames.contains("U2"));
+    }
+
+    @Test
+    void testSetActiveUniversity() {
+        manager.addUniversity("U3");
+        assertTrue(manager.setActiveUniversity("U3"));
+        assertEquals("U3", manager.getActiveUniversity().getUniversityName());
+        
+        assertFalse(manager.setActiveUniversity("University doesn't exist"));
     }
 }

@@ -150,6 +150,9 @@ public class Server {
                             case LIST_COURSES:
                                 response = manager.getAllCourses();
                                 break;
+                            case VIEW_HOLD:
+                                response = manager.getStudentHolds(currentUser.getUsername());
+                                break;
                             case CREATE_COURSE:
                                 response = manager.createCourse(message.getList());
                                 break;
@@ -158,6 +161,13 @@ public class Server {
                                 break;
                             case VIEW_STUDENTS:
                                 response = manager.getAllStudents();
+                                break;
+                            case VIEW_ADMINS:
+                                response = manager.getAllAdmins();
+                                break;
+                            case VIEW_STUDENT_SCHEDULE:
+                                // Args: studentId in message.getText()
+                                response = manager.getStudentScheduleByStudentId(message.getText());
                                 break;
                             case GET_REPORT:
                                 response = manager.getReport();
@@ -168,8 +178,19 @@ public class Server {
                             case REMOVE_HOLD:
                                 response = manager.removeHoldOnAccount(message.getList().get(0), message.getList().get(1));
                                 break;
+                            case WITHDRAW_STUDENT:
+                                Message dropResult = manager.processDrop(message.getList().get(0), message.getList().get(1));
+                                // Create new message with correct message type
+                                response = new Message(MessageType.WITHDRAW_STUDENT, dropResult.getStatus(), dropResult.getText());
+                                break;
+                            case LIST_ENROLLMENT:
+                                response = manager.getEnrollmentList(message.getText());
+                                break;
                             case EDIT_COURSE:
                                 response = manager.editCourse(message.getList());
+                                break;
+                            case VIEW_UNIVERSITIES:
+                                response = manager.getAllUniversities();
                                 break;
                             default:
                                 response = new Message(type, Status.FAIL, "Unknown request.");
