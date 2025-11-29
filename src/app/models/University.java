@@ -50,6 +50,10 @@ public class University implements Serializable {
         return students.values();
     }
     
+    public Collection<Admin> getAllAdmins() {
+        return admins.values();
+    }
+    
     public ArrayList<User> getAllUsers() {
         ArrayList<User> all = new ArrayList<>(students.values());
         all.addAll(admins.values());

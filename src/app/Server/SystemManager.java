@@ -146,6 +146,43 @@ public class SystemManager {
         if (displayList.isEmpty()) return new Message(MessageType.VIEW_SCHEDULE, Status.SUCCESS, "Schedule is Empty.");
         return new Message(MessageType.VIEW_SCHEDULE, Status.SUCCESS, "Schedule:", displayList);
     }
+    
+    public Message getStudentScheduleByStudentId(String studentId) {
+        // Search by studentId 
+        Student student = null;
+        for (Student s : university.getAllStudents()) {
+            if (s.getStudentId().equals(studentId)) {
+                student = s;
+                break;
+            }
+        }
+        
+        if (student == null) {
+            return new Message(MessageType.VIEW_STUDENT_SCHEDULE, Status.FAIL, "Student ID not found.");
+        }
+        
+        ArrayList<String> displayList = new ArrayList<>();
+        for (Course c : student.getSchedule().getCourses()) {
+            // Format: CourseID|CourseName|Time|Instructor|Credits|Enrollment/Capacity
+            String courseData = String.format("%s|%s|%s|%s|%d|%d/%d", 
+                c.getCourseId(), 
+                c.getTitle(), 
+                c.getTime(), 
+                c.getInstructor(),
+                c.getCredits(),
+                c.getCurrentEnrollment(), 
+                c.getMaxCapacity()
+            );        	
+            displayList.add(courseData);
+        }
+        
+        if (displayList.isEmpty()) {
+            return new Message(MessageType.VIEW_STUDENT_SCHEDULE, Status.SUCCESS, 
+                "Schedule for " + student.getFirstName() + " " + student.getLastName() + " (" + studentId + ") is empty.");
+        }
+        return new Message(MessageType.VIEW_STUDENT_SCHEDULE, Status.SUCCESS, 
+            "Schedule for " + student.getFirstName() + " " + student.getLastName() + " (" + studentId + "):", displayList);
+    }
 
     // For Admins
     public Message addUser(ArrayList<String> args) {
@@ -221,6 +258,30 @@ public class SystemManager {
         return new Message(MessageType.REMOVE_HOLD, Status.FAIL, "Student Not Found");
     }
 
+    public Message getStudentHolds(String studentUsername) {
+        Student student = university.getStudent(studentUsername);
+        
+        if (student == null) {
+            return new Message(MessageType.VIEW_HOLD, Status.FAIL, "Student not found.");
+        }
+        
+        if (!student.hasHolds()) {
+            return new Message(MessageType.VIEW_HOLD, Status.SUCCESS, 
+                "No holds on your account. You are clear to enroll in courses.");
+        }
+        
+        // Student has holds
+        ArrayList<String> holdList = new ArrayList<>();
+        holdList.add("You have " + student.getHolds().size() + " hold(s) on your account:");
+        for (String hold : student.getHolds()) {
+            holdList.add("  • " + hold);
+        }
+        holdList.add("\nPlease contact the administration office to resolve these holds.");
+        
+        return new Message(MessageType.VIEW_HOLD, Status.SUCCESS, 
+            "Account Holds", holdList);
+    }
+
     public Message getAllCourses() {
         ArrayList<String> list = new ArrayList<>();
         for (Course c : university.getAllCourses()) {
@@ -245,6 +306,14 @@ public class SystemManager {
             list.add(s.getStudentId() + ": " + s.getFirstName() + " " + s.getLastName());
         }
         return new Message(MessageType.VIEW_STUDENTS, Status.SUCCESS, "Students", list);
+    }
+    
+    public Message getAllAdmins() {
+        ArrayList<String> list = new ArrayList<>();
+        for (Admin a : university.getAllAdmins()) {
+            list.add(a.getAdminId() + ": " + a.getFirstName() + " " + a.getLastName() + " (" + a.getUsername() + ")");
+        }
+        return new Message(MessageType.VIEW_ADMINS, Status.SUCCESS, "Administrators", list);
     }
     
     public Message getAllUniversities() {

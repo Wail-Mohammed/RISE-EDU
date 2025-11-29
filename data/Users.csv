@@ -1,4 +1,5 @@
 User-Type,Username,Password,FirstName,LastName,ID, Holds
+STUDENT,edison,0000,edison,wang,S008,
 STUDENT,student1,password1,FirstName,LastName,S0011,
 STUDENT,yesenia,tinkerbell,Yesenia,Ruiz,S0002,Missing Transcript
 STUDENT,wail,$wail$,Wail,Mohammed,S0001,
