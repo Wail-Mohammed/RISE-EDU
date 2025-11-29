@@ -68,4 +68,13 @@ public class University implements Serializable {
     public void addCourse(Course course) {
         if (course != null) courseCatalog.put(course.getCourseId(), course);
     }
+    
+    public boolean removeCourse(String course) {
+        if (courseCatalog.containsKey(course)) {
+            courseCatalog.remove(course);
+            return true;
+        }
+        return false;
+    }
+
 }
