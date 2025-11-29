@@ -193,10 +193,8 @@ public class SystemManager {
     }
 
     public Message deleteCourse(String courseId) {
-        // Real deletion would require removing from University map.
-        // Since University.java uses a Map without a remove method exposed, we just return success for simulation
-        // Or you can add removeCourse() to University.java
-        if (university.getCourse(courseId) != null) {
+
+    	if (university.removeCourse(courseId)) {
             return new Message(MessageType.REMOVE_COURSE, Status.SUCCESS, "Course Deleted");
         }
         return new Message(MessageType.REMOVE_COURSE, Status.FAIL, "Course Not Found");
