@@ -9,13 +9,15 @@ public class Report {
     private String reportType;
     private Date generatedDate;
     private String reportData;
+    private String universityName;
 
     // Constructor 
-    public Report(String reportType) {
+    public Report(String reportType, String universityName) {
         this.reportType = reportType;
         this.generatedDate = new Date();
         this.reportID = generateReportID();
         this.reportData = "";
+        this.universityName = universityName;
     }
 
     // Generates a unique report ID
@@ -61,5 +63,9 @@ public class Report {
     public String getReportData() { 
     	return reportData; 
     	}
+    
+    public String getUniversityName()  {
+    	return universityName;
+    }
 }
 

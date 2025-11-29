@@ -278,6 +278,25 @@ public class SystemManagerTester {
     }
     
     @Test
+    void testPrereqCheckAtProcessEnrollment() {
+    	course1.addPrerequisite("CS100"); // using this CS100 as prereq for first course
+    	var info = manager.processEnrollment("Student1", "Course1");
+    	assertEquals(Status.FAIL, info.getStatus());
+    }
+    
+    @Test
+    void testWaitlistFullAtProcessEnrollment() {
+    	assertEquals(Status.SUCCESS, manager.processEnrollment("student1", "Course1").getStatus());
+    	
+    	Student secondStudent = new Student("student2", "password2", "Second", "User", "S0002");
+    	
+    	var info = manager.processEnrollment("student2", "Course1");
+    	
+    	assertEquals(Status.FAIL, info.getStatus()); // using this for when student cannot enroll due to class being full
+    	
+    	// now second student to be on the waitlist for first course1
+    	assertEquals(1, course1.getWaitlist().size());
+    	assertTrue(course1.getWaitlist().contains("student2"));
     void testAddAndGetAllUniversities() {
         // Add a second university
         manager.addUniversity("U2");

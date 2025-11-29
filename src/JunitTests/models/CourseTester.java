@@ -86,4 +86,33 @@ public class CourseTester {
         course.setMaxCapacity(5);
         assertEquals(5, course.getMaxCapacity());
     }
+	
+	@Test
+    void testCoursePrereq() {
+    	Course course = new Course("First Course", "Course Name", "Class time", "Room", 3, "Professor", 30, 0);
+    	//using this to test for course prereqs adding
+    	course.addPrerequisite("CS413");
+    	course.addPrerequisite("CS301");
+    	course.addPrerequisite("CS401");
+    	course.addPrerequisite("ENG1A");
+    	
+    	// using this for getting the prereqs
+    	assertEquals(4, course.getPrerequisites().size());
+    	assertTrue(course.getPrerequisites().contains("CS413"));
+    	assertTrue(course.getPrerequisites().contains("CS301"));
+    	assertTrue(course.getPrerequisites().contains("CS401"));
+    	assertTrue(course.getPrerequisites().contains("ENG1A"));
+    }
+	
+	@Test
+	void testCourseWaitlist() {
+		Course course = new Course("First Course", "Course Name", "Class time", "Room", 3, "Professor", 1, 0);
+		int firstPost = course.waitlistPlaced("First Student");
+		
+		assertEquals(1, firstPost); // position # 1 for the first student
+		assertEquals(1,course.getWaitlist().size()); // size is 1 for waitlist
+		assertTrue(course.getWaitlist().contains("First Student")); // First Student" is in Waitlist
+	}
 }
+
+   

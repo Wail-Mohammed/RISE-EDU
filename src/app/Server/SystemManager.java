@@ -1,11 +1,18 @@
+
 package app.Server;
 
 import java.util.*;
+
 import app.models.*;
+
 import app.Report.Report;
+
 import app.Shared.Message;
+
 import app.Shared.Status;
+
 import app.Shared.MessageType;
+
 import app.Shared.UserType;
 
 public class SystemManager {
@@ -98,11 +105,19 @@ public class SystemManager {
         if (course == null) return new Message(MessageType.ENROLL_COURSE, Status.FAIL, "Course is not found.");
         
         if (student.hasHolds()) return new Message(MessageType.ENROLL_COURSE, Status.FAIL, "Cannot Enroll Due to Hold: " + student.getHolds().get(0));
-        // add a check for pre req
+        
+        if (!prereqCheck(student, course)) {
+            return new Message(MessageType.ENROLL_COURSE, Status.FAIL, "You have not met the prerequisite for " + course.getTitle());
+        }
+
         if (course.enrollStudent(studentUsername)) {
             student.getSchedule().addCourse(course);
             return new Message(MessageType.ENROLL_COURSE, Status.SUCCESS, "Enrolled in " + course.getTitle());
         }
+        
+        // using this to add student to waitlist
+        int post = course.waitlistPlaced(studentUsername);
+        
         return new Message(MessageType.ENROLL_COURSE, Status.FAIL, "Unfortunately, this course is full.");
     }
 
@@ -130,7 +145,7 @@ public class SystemManager {
 
         ArrayList<String> displayList = new ArrayList<>();
         for (Course c : student.getSchedule().getCourses()) {
-        	// Format: Course ID | Course Name | Time | Instructor | Credits | Enrollment/Capacity
+            // Format: Course ID | Course Name | Time | Instructor | Credits | Enrollment/Capacity
             String studentScheduleDetails = String.format("%-8s | %-35.35s | %-12s | %-15s | %d Credits | [%d/%d]", 
                 c.getCourseId(), 
                 c.getTitle(), 
@@ -285,7 +300,7 @@ public class SystemManager {
     public Message getAllCourses() {
         ArrayList<String> list = new ArrayList<>();
         for (Course c : university.getAllCourses()) {
-        	// Format: Course ID | Course Name | Time | Instructor | Credits | Enrollment/Capacity
+            // Format: Course ID | Course Name | Time | Instructor | Credits | Enrollment/Capacity
             String coursesDetails = String.format("%-8s | %-35.35s | %-12s | %-15s | %d Credits | [%d/%d]", 
                 c.getCourseId(), 
                 c.getTitle(), 
@@ -330,8 +345,7 @@ public class SystemManager {
     }
     
     public Message getReport() {
-
-        Report report = new Report("Enrollment Summary");
+        Report report = new Report("Enrollment Summary", "RISE-EDU");
         
         StringBuilder sb = new StringBuilder();
         sb.append("RISE-EDU SYSTEM REPORT\n");
@@ -341,17 +355,40 @@ public class SystemManager {
         for (Course c : university.getAllCourses()) {
             sb.append(String.format("%s: %s (%d/%d students)\n", 
                 c.getCourseId(), c.getTitle(), c.getCurrentEnrollment(), c.getMaxCapacity()));
+            
+            sb.append("Instructor: ").append(c.getInstructor()).append("\n");
+            sb.append("Credits: ").append(c.getCredits()).append("\n");
+            sb.append("Days & Time: ").append(c.getTime()).append("\n");
+            sb.append("Capacity(Size): ").append(c.getMaxCapacity()).append(" (Enrolled: ").append(c.getCurrentEnrollment()).append(")\n");
+            
+            // for Waitlist
+            List<String> waitlist = c.getWaitlist();
+            if (waitlist == null || waitlist.isEmpty()) {
+            	sb.append("Waitlist : None\n");
+            }else {
+            	sb.append("Waitlist : ").append(waitlist).append("\n");
+            }
+            
+            // For prereq
+            
+            List<String> prereqs = c.getPrerequisites();
+            if (prereqs == null || prereqs.isEmpty()) {
+             	sb.append("Prerequisites : None\n");
+            }else {
+            	sb.append("Prerequisites : ").append(prereqs).append("\n");
+            }
+            
         }
         
         sb.append("\n------------- STUDENTS ------------\n");
         for (Student s : university.getAllStudents()) {
-        	String holdStatus;
-        	if (s.hasHolds()) {
-        		holdStatus = "[HOLDS: " + s.getHolds().toString() + "]";
+            String holdStatus;
+            if (s.hasHolds()) {
+                holdStatus = "[HOLDS: " + s.getHolds().toString() + "]";
             } else {
                 holdStatus = "[Clear: No holds]";
             }
-        	sb.append(String.format("%s: %s %s %s (Enrolled: %d)\n", 
+            sb.append(String.format("%s: %s %s %s (Enrolled: %d)\n", 
                 s.getStudentId(), s.getFirstName(), s.getLastName(), holdStatus, s.getSchedule().getCourses().size()));
         }
         
@@ -379,7 +416,6 @@ public class SystemManager {
         } catch (NumberFormatException e) {
             return new Message(MessageType.EDIT_COURSE, Status.FAIL, "Invalid Capacity Number");
         }
-    
     }
     
     // this will show the enrollment list for a course 
@@ -418,5 +454,25 @@ public class SystemManager {
     }
     
     // Add methods for waitlist and pre req
-
+    
+    private boolean prereqCheck(Student student, Course course) {    
+        ArrayList<String> prereqC = course.getPrerequisites();
+        if (prereqC == null || prereqC.isEmpty()) {
+            return true; // to deem it ok if there are no prereqs
+        }
+        
+        // using this to get an info of the courses the student has scheduled as at now 
+        ArrayList<String> currCourseIds = new ArrayList<>();
+        for (Course scheduled : student.getSchedule().getCourses()) {
+            currCourseIds.add(scheduled.getCourseId());
+        }
+        
+        // using this to look through the prerequisites for a particular course being met before they can enroll
+        for (String reqdId : prereqC) {
+            if (!currCourseIds.contains(reqdId)) {
+                return false;
+            }	
+        }
+        return true;
+    }
 }
