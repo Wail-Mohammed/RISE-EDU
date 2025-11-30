@@ -231,15 +231,22 @@ public class SystemManager {
     // For Admins
     public Message addUser(ArrayList<String> args) {
         // Args: [Type, Username, Password, FirstName, LastName, ID]
-        if (args.size() < 6) return new Message(MessageType.ADD_USER, Status.FAIL, "Missing info");
+        if (args.size() < 7) return new Message(MessageType.ADD_USER, Status.FAIL, "Missing info");
+        
+        String universityName = args.get(0);
+        String type = args.get(1);
+        String user = args.get(2);
+        String pass = args.get(3);
+        String first = args.get(4);
+        String last = args.get(5);
+        String id = args.get(6);
 
-        String type = args.get(0);
-        String user = args.get(1);
-        String pass = args.get(2);
-        String first = args.get(3);
-        String last = args.get(4);
-        String id = args.get(5);
-
+        University uni = universities.get(universityName);
+        if (uni == null) {
+            uni = new University(universityName);
+            universities.put(universityName, uni);
+        }
+        
         if (university.getUser(user) != null) {
             return new Message(MessageType.ADD_USER, Status.FAIL, "Username taken");
         }

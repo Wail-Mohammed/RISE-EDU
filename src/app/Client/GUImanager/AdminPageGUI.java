@@ -110,6 +110,9 @@ public class AdminPageGUI extends JFrame {
         String userType = (type == 0) ? "STUDENT" : "ADMIN";
         
         // Collect user information, each step can be cancelled
+        String universityName = JOptionPane.showInputDialog(this, "University Name:", "Add User", JOptionPane.QUESTION_MESSAGE);
+        if (universityName == null || universityName.isBlank()) return;
+        
         String username = JOptionPane.showInputDialog(this, "Username:", "Add User", JOptionPane.QUESTION_MESSAGE);
         if (username == null || username.isBlank()) return;
         
@@ -134,6 +137,7 @@ public class AdminPageGUI extends JFrame {
 
         // Send request
         ArrayList<String> args = new ArrayList<>();
+        args.add(universityName.trim());
         args.add(userType);
         args.add(username.trim());
         args.add(password.trim());
