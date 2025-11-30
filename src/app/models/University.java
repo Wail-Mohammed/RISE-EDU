@@ -4,6 +4,8 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Collection;
+
+import app.Report.Report;
 import app.Shared.UserType;
 
 public class University implements Serializable {
@@ -12,12 +14,14 @@ public class University implements Serializable {
     private HashMap<String, Student> students;
     private HashMap<String, Admin> admins; 
     private HashMap<String, Course> courseCatalog;
+    private HashMap<String, Report> reports;
 
     public University(String universityName) {
         this.universityName = universityName;
         this.students = new HashMap<>();
         this.admins = new HashMap<>();
         this.courseCatalog = new HashMap<>();
+        this.reports = new HashMap<>();
     }
     
     public String getUniversityName() {
@@ -79,6 +83,20 @@ public class University implements Serializable {
             return true;
         }
         return false;
+    }
+    
+    public void addReport(Report report) {
+    	if (report != null) {
+    		reports.put(report.getReportID(), report);
+    	}
+    }
+    
+    public Report getReport(String reportId) {
+    	return reports.get(reportId);
+    }
+    
+    public Collection<Report> getAllReports() {
+    	return reports.values();
     }
 
 }

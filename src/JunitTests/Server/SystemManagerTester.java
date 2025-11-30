@@ -297,6 +297,7 @@ public class SystemManagerTester {
     	// now second student to be on the waitlist for first course1
     	assertEquals(1, course1.getWaitlist().size());
     	assertTrue(course1.getWaitlist().contains("student2"));
+    }
     void testAddAndGetAllUniversities() {
         // Add a second university
         manager.addUniversity("U2");
