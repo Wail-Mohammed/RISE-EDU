@@ -247,7 +247,7 @@ public class SystemManager {
     public Message deleteCourse(String courseId) {
 
     	if (university.removeCourse(courseId)) {
-            return new Message(MessageType.REMOVE_COURSE, Status.SUCCESS, "Course Deleted");
+            return new Message(MessageType.REMOVE_COURSE, Status.SUCCESS, "Course " + courseId + " deleted successfully");
         }
         return new Message(MessageType.REMOVE_COURSE, Status.FAIL, "Course Not Found");
     }

@@ -397,11 +397,55 @@ public class AdminPageGUI extends JFrame {
                     return;
                 }
                 
-                // Special handling for VIEW_STUDENT_SCHEDULE - use JTable for better display
+             
+                if (msg.getType() == MessageType.REMOVE_COURSE && 
+                    response.getStatus() == Status.SUCCESS &&
+                    response.getText().contains("deleted successfully")) {
+                    
+                  
+                    String messageText = response.getText();
+                    String courseId = messageText.replace("Course ", "").replace(" deleted successfully", "").trim();
+                    
+                   
+                    JPanel panel = new JPanel();
+                    panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+                    panel.setBorder(BorderFactory.createEmptyBorder(20, 40, 20, 40));
+           
+                    JLabel titleLabel = new JLabel("Course Deleted!");
+                    titleLabel.setFont(titleLabel.getFont().deriveFont(Font.BOLD, 18f));
+                    titleLabel.setAlignmentX(JComponent.CENTER_ALIGNMENT);
+                    
+                  
+                    JLabel idLabel = new JLabel("Course ID:");
+                    idLabel.setFont(idLabel.getFont().deriveFont(14f));
+                    idLabel.setAlignmentX(JComponent.CENTER_ALIGNMENT);
+                    
+                   
+                    JLabel courseIdLabel = new JLabel(courseId);
+                    courseIdLabel.setFont(courseIdLabel.getFont().deriveFont(Font.BOLD, 20f));
+                    courseIdLabel.setAlignmentX(JComponent.CENTER_ALIGNMENT);
+                    
+                    panel.add(titleLabel);
+                    panel.add(Box.createVerticalStrut(15));
+                    panel.add(idLabel);
+                    panel.add(Box.createVerticalStrut(5));
+                    panel.add(courseIdLabel);
+                    
+                    JOptionPane.showMessageDialog(
+                        this,
+                        panel,
+                        "Success",
+                        JOptionPane.PLAIN_MESSAGE,
+                        null  
+                    );
+                    return;
+                }
+                
+                
                 if (msg.getType() == MessageType.VIEW_STUDENT_SCHEDULE && 
                     response.getList() != null && !response.getList().isEmpty()) {
                     
-                    // Parse course data and create table
+                    
                     String[] columnNames = {"Course ID", "Course Title", "Class Time", "Instructor", "Credits", "Enrollment/Capacity"};
                     ArrayList<String[]> tableData = new ArrayList<>();
                     
