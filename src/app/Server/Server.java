@@ -179,8 +179,7 @@ public class Server {
                                 response = manager.removeHoldOnAccount(message.getList().get(0), message.getList().get(1));
                                 break;
                             case WITHDRAW_STUDENT:
-                                Message dropResult = manager.processDrop(message.getList().get(0), message.getList().get(1));
-                                // Create new message with correct message type
+                                Message dropResult = manager.processDropByStudentId(message.getList().get(0), message.getList().get(1));
                                 response = new Message(MessageType.WITHDRAW_STUDENT, dropResult.getStatus(), dropResult.getText());
                                 break;
                             case LIST_ENROLLMENT:
