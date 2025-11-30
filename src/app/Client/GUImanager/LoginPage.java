@@ -26,6 +26,10 @@ public class LoginPage extends JFrame {
     private JTextField usernameField = new JTextField(20);
     private JPasswordField passwordField = new JPasswordField(20);
     private JButton goButton = new JButton("Go");
+    //Grouping by usertype
+    private JRadioButton studentRadio = new JRadioButton("Student");
+    private JRadioButton adminRadio = new JRadioButton("Admin");
+    private ButtonGroup userTypeGroup = new ButtonGroup();
 
     public LoginPage(Client client) {
         super("RISE-EDU Login");
@@ -48,10 +52,26 @@ public class LoginPage extends JFrame {
         wrapper.setOpaque(false);
         wrapper.setLayout(new BoxLayout(wrapper, BoxLayout.Y_AXIS));
         wrapper.setBorder(BorderFactory.createEmptyBorder(40, 60, 40, 60));
+        
+        // separate panel for the radio buttons
+        JPanel radioPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        radioPanel.setOpaque(false);
+        
+        userTypeGroup.add(studentRadio);
+        userTypeGroup.add(adminRadio);
+        studentRadio.setSelected(true);
+       
+        studentRadio.setOpaque(false);
+        adminRadio.setOpaque(false);
 
+        radioPanel.add(studentRadio);
+        radioPanel.add(adminRadio);
         JLabel title = new JLabel("Login", SwingConstants.CENTER);
         title.setFont(title.getFont().deriveFont(Font.BOLD, 28f));
         title.setAlignmentX(CENTER_ALIGNMENT);
+        
+        wrapper.add(radioPanel);
+        wrapper.add(Box.createVerticalStrut(10));
 
         wrapper.add(Box.createVerticalGlue());
         wrapper.add(title);
@@ -169,6 +189,7 @@ public class LoginPage extends JFrame {
         ArrayList<String> payload = new ArrayList<>();
         payload.add(username);
         payload.add(password);
+        payload.add(studentRadio.isSelected() ? "STUDENT" : "ADMIN");
         Message request = new Message(MessageType.LOGIN, Status.NULL, "", payload);
         return client.send(request);
     }

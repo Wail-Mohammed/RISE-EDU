@@ -89,7 +89,7 @@ public class StudentPageGUI extends JFrame {
     private JButton createLogoutButton() {
         JButton button = new JButton("Logout");
         button.setPreferredSize(new Dimension(150, 40));
-        button.setBackground(new Color(200, 80, 80)); // 红色，表示退出操作
+        button.setBackground(new Color(200, 80, 80));
         button.setForeground(Color.WHITE);
         button.setFont(button.getFont().deriveFont(Font.BOLD, 14f));
         button.setFocusPainted(false);

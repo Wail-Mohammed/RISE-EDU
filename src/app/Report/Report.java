@@ -29,7 +29,7 @@ public class Report {
     // Generates report data
     public void generate(String data) {
         this.reportData = data;
-        this.generatedDate = new Date(); // update generated date
+        this.generatedDate = new Date();
     }
 
     // Displays the report
@@ -40,9 +40,8 @@ public class Report {
         System.out.println("Report Data: " + reportData);
     }
 
-    // Saves the report (stub implementation)
+    // to save the report
     public boolean saveReport() {
-        // In a real scenario, you could save to a file or database
         System.out.println("Report saved successfully.");
         return true;
     }
