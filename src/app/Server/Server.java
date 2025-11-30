@@ -120,8 +120,9 @@ public class Server {
                         System.out.println("Processing a LOGIN Type request...");
                         String username = message.getList().get(0);
                         String password = message.getList().get(1);
+                        String userType =  message.getList().get(2);
                         
-                        response = manager.authenticateUser(username, password);
+						response = manager.authenticateUser(username, password, userType);
                         
                         if (response.getStatus() == Status.SUCCESS) {
                             this.currentUser = manager.findUser(username);

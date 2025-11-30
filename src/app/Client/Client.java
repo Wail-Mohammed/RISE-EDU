@@ -15,9 +15,8 @@ public class Client {
      //Connects to the server
     public void connect(String ip, int port) throws IOException {
         this.socket = new Socket(ip, port);
-        // Order matters! Construct output stream first to avoid deadlock
         this.out = new ObjectOutputStream(socket.getOutputStream());
-        this.out.flush(); // Good practice
+        this.out.flush();
         this.in = new ObjectInputStream(socket.getInputStream());
     }
 

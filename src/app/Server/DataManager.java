@@ -84,7 +84,8 @@ public class DataManager {
             }
         } catch (IOException e) {
             System.err.println("Error loading users: " + e.getMessage());
-        }
+        
+    }
     }
 
     private void loadCourses(University university) {

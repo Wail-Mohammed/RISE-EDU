@@ -81,19 +81,23 @@ public class SystemManager {
     public Collection<String> getAllUniversityNames() {
         return universities.keySet();
     }
-    
-
-    public Message authenticateUser(String username, String password) {
+    //authenticating users
+    public Message authenticateUser(String username, String password, String userType) {
         if (university == null) {
             return new Message(MessageType.LOGIN, Status.FAIL, "No university selected.");
         }
         User user = university.getUser(username);
         if (user == null) return new Message(MessageType.LOGIN, Status.FAIL, "Username not found.");
         
-        if (user.checkPassword(password)) return new Message(MessageType.LOGIN, Status.SUCCESS, user.getUserType(), "Login OK");
-        return new Message(MessageType.LOGIN, Status.FAIL, "Invalid Password");
+        if (!user.checkPassword(password)) {return new Message(MessageType.LOGIN, Status.FAIL, "Invalid Password");}
+        if (userType.equalsIgnoreCase("ADMIN") && user.getUserType() != UserType.ADMIN) {
+            return new Message(MessageType.LOGIN, Status.FAIL, "You are not an Admin.");
+        }
+        if (userType.equalsIgnoreCase("STUDENT") && user.getUserType() != UserType.STUDENT) {
+            return new Message(MessageType.LOGIN, Status.FAIL, "You are not a Student.");
+        }
+        return new Message(MessageType.LOGIN, Status.SUCCESS, user.getUserType(), "Login OK");
     }
-    
     
     // Core processes
     // For Students
