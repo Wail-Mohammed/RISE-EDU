@@ -139,6 +139,22 @@ public class SystemManager {
         return new Message(MessageType.DROP_COURSE, Status.FAIL, "Not enrolled in " + courseId);
     }
 
+    public Message processDropByStudentId(String studentId, String courseId) {
+        Student student = null;
+        for (Student s : university.getAllStudents()) {
+            if (s.getStudentId().equals(studentId)) {
+                student = s;
+                break;
+            }
+        }
+        
+        if (student == null) {
+            return new Message(MessageType.DROP_COURSE, Status.FAIL, "Student ID not found.");
+        }
+        
+        return processDrop(student.getUsername(), courseId);
+    }
+
     public Message getStudentSchedule(String studentUsername) {
         Student student = university.getStudent(studentUsername);
         if (student == null) return new Message(MessageType.VIEW_SCHEDULE, Status.FAIL, "Student is not found.");
@@ -178,15 +194,24 @@ public class SystemManager {
         
         ArrayList<String> displayList = new ArrayList<>();
         for (Course c : student.getSchedule().getCourses()) {
-            // Format: CourseID|CourseName|Time|Instructor|Credits|Enrollment/Capacity
-            String courseData = String.format("%s|%s|%s|%s|%d|%d/%d", 
+            String waitlistStr = (c.getWaitlist() == null || c.getWaitlist().isEmpty()) 
+                ? "None" 
+                : c.getWaitlist().toString();
+            
+            String prereqsStr = (c.getPrerequisites() == null || c.getPrerequisites().isEmpty()) 
+                ? "None" 
+                : c.getPrerequisites().toString();
+            
+            String courseData = String.format("%s|%s|%s|%s|%d|%d/%d|%s|%s", 
                 c.getCourseId(), 
                 c.getTitle(), 
                 c.getTime(), 
                 c.getInstructor(),
                 c.getCredits(),
                 c.getCurrentEnrollment(), 
-                c.getMaxCapacity()
+                c.getMaxCapacity(),
+                waitlistStr,
+                prereqsStr
             );        	
             displayList.add(courseData);
         }
@@ -247,7 +272,7 @@ public class SystemManager {
     public Message deleteCourse(String courseId) {
 
     	if (university.removeCourse(courseId)) {
-            return new Message(MessageType.REMOVE_COURSE, Status.SUCCESS, "Course Deleted");
+            return new Message(MessageType.REMOVE_COURSE, Status.SUCCESS, "Course " + courseId + " deleted successfully");
         }
         return new Message(MessageType.REMOVE_COURSE, Status.FAIL, "Course Not Found");
     }
@@ -353,6 +378,7 @@ public class SystemManager {
         
         sb.append("---------------- COURSES ----------------\n");
         for (Course c : university.getAllCourses()) {
+            sb.append("-------------------------------\n");
             sb.append(String.format("%s: %s (%d/%d students)\n", 
                 c.getCourseId(), c.getTitle(), c.getCurrentEnrollment(), c.getMaxCapacity()));
             
@@ -382,6 +408,7 @@ public class SystemManager {
         
         sb.append("\n------------- STUDENTS ------------\n");
         for (Student s : university.getAllStudents()) {
+            sb.append("-------------------------------\n");
             String holdStatus;
             if (s.hasHolds()) {
                 holdStatus = "[HOLDS: " + s.getHolds().toString() + "]";

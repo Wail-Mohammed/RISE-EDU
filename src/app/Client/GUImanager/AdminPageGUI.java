@@ -56,6 +56,7 @@ public class AdminPageGUI extends JFrame {
         grid.add(createActionButton("View Enrollment List", e -> viewEnrollmentList()));
         grid.add(createActionButton("View Universties", e -> viewUniversties()));
         grid.add(createActionButton("View Admins", e -> viewAdmins()));
+        grid.add(createActionButton("View All Students", e -> viewAllStudents()));
         
 
         wrapper.add(grid, BorderLayout.CENTER);
@@ -230,63 +231,61 @@ public class AdminPageGUI extends JFrame {
         sendRequest(new Message(MessageType.VIEW_ADMINS, Status.NULL, "")); 
     }
     
+    private void viewAllStudents() { 
+        sendRequest(new Message(MessageType.VIEW_STUDENTS, Status.NULL, "")); 
+    }
+    
     private void withdrawStudent() {
-        // Step 1: Get course ID
-        String courseId = JOptionPane.showInputDialog(this, "Enter Course ID:", "Withdraw Student", JOptionPane.QUESTION_MESSAGE);
-        if (courseId == null || courseId.isBlank()) return;
+        String studentId = JOptionPane.showInputDialog(this, "Enter Student ID:", "Withdraw Student", JOptionPane.QUESTION_MESSAGE);
+        if (studentId == null || studentId.isBlank()) return;
         
-        // Step 2: Get enrollment list to show admin which students are enrolled
+        String studentName = null;
         try {
-            Message enrollmentMsg = new Message(MessageType.LIST_ENROLLMENT, Status.NULL, courseId.trim());
-            Message enrollmentResponse = client.send(enrollmentMsg);
+            Message scheduleMsg = new Message(MessageType.VIEW_STUDENT_SCHEDULE, Status.NULL, studentId.trim());
+            Message scheduleResponse = client.send(scheduleMsg);
             
-            if (enrollmentResponse.getStatus() == Status.SUCCESS) {
-                if (enrollmentResponse.getList() != null && !enrollmentResponse.getList().isEmpty()) {
-                    // Show enrollment list
-                    StringBuilder sb = new StringBuilder("Enrolled Students in " + courseId + ":\n\n");
-                    for (String item : enrollmentResponse.getList()) {
-                        sb.append(item).append("\n");
+            if (scheduleResponse.getStatus() == Status.SUCCESS) {
+                String responseText = scheduleResponse.getText();
+                if (responseText.contains("Schedule for")) {
+                    int start = responseText.indexOf("Schedule for ") + 13;
+                    int end = responseText.indexOf(" (");
+                    if (end > start) {
+                        studentName = responseText.substring(start, end);
                     }
-                    JTextArea textArea = new JTextArea(sb.toString());
-                    textArea.setEditable(false);
-                    JScrollPane scrollPane = new JScrollPane(textArea);
-                    textArea.setLineWrap(true);
-                    textArea.setWrapStyleWord(true);
-                    textArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
-                    scrollPane.setPreferredSize(new Dimension(500, 300));
-                    JOptionPane.showMessageDialog(this, scrollPane, "Enrollment List", JOptionPane.INFORMATION_MESSAGE);
+                }
+                
+                if (scheduleResponse.getList() != null && !scheduleResponse.getList().isEmpty()) {
+                    displayStudentScheduleTable(scheduleResponse, studentName, studentId);
                 } else {
-                    // No students enrolled
                     JOptionPane.showMessageDialog(this, 
-                        enrollmentResponse.getText(), 
-                        "Enrollment List", 
+                        "Student " + (studentName != null ? studentName : "") + " (" + studentId + ") has no enrolled courses.",
+                        "No Courses",
                         JOptionPane.INFORMATION_MESSAGE);
-                    return; // Exit if no students enrolled
+                    return;
                 }
             } else {
-                // Course not found or error
                 JOptionPane.showMessageDialog(this, 
-                    enrollmentResponse.getText(), 
+                    scheduleResponse.getText(), 
                     "Error", 
                     JOptionPane.ERROR_MESSAGE);
-                return; // Exit on error
+                return;
             }
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, 
-                "Error fetching enrollment list: " + e.getMessage(), 
+                "Error: " + e.getMessage(), 
                 "Error", 
                 JOptionPane.ERROR_MESSAGE);
-            return; // Exit on exception
+            return;
         }
         
-        // Step 3: Get student username to withdraw
-        String studentUsername = JOptionPane.showInputDialog(this, "Enter Student Username to withdraw:", "Withdraw Student", JOptionPane.QUESTION_MESSAGE);
-        if (studentUsername == null || studentUsername.isBlank()) return;
+        String courseId = JOptionPane.showInputDialog(this, "Enter Course ID to withdraw:", "Withdraw Student", JOptionPane.QUESTION_MESSAGE);
+        if (courseId == null || courseId.isBlank()) return;
         
-        // Step 4: Confirm action
         int confirm = JOptionPane.showConfirmDialog(
             this,
-            "Are you sure you want to withdraw student '" + studentUsername + "' from course '" + courseId + "'?",
+            "Are you sure you want to withdraw student '" + 
+            (studentName != null ? studentName + " (" + studentId + ")" : studentId) + 
+            "' from course '" + courseId + "'?",
             "Confirm Withdrawal",
             JOptionPane.YES_NO_OPTION,
             JOptionPane.QUESTION_MESSAGE
@@ -294,10 +293,63 @@ public class AdminPageGUI extends JFrame {
         
         if (confirm == JOptionPane.YES_OPTION) {
             ArrayList<String> args = new ArrayList<>();
-            args.add(studentUsername.trim());
+            args.add(studentId.trim());
             args.add(courseId.trim());
             sendRequest(new Message(MessageType.WITHDRAW_STUDENT, Status.NULL, "", args));
         }
+    }
+    
+    private void displayStudentScheduleTable(Message response, String studentName, String studentId) {
+        if (response.getList() == null || response.getList().isEmpty()) {
+            return;
+        }
+        
+        String[] columnNames = {"Course ID", "Course Title", "Class Time", "Instructor", "Credits", "Enrollment/Capacity"};
+        ArrayList<String[]> tableData = new ArrayList<>();
+        
+        for (String item : response.getList()) {
+            String[] parts = item.split("\\|");
+            if (parts.length >= 6) {
+                tableData.add(new String[]{
+                    parts[0],
+                    parts[1],
+                    parts[2],
+                    parts[3],
+                    parts[4] + " Credits",
+                    "[" + parts[5] + "]"
+                });
+            }
+        }
+        
+        String[][] data = tableData.toArray(new String[tableData.size()][]);
+        JTable table = new JTable(data, columnNames);
+        table.setFont(new Font("Monospaced", Font.PLAIN, 12));
+        table.setRowHeight(20);
+        table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+        table.getColumnModel().getColumn(0).setPreferredWidth(80);
+        table.getColumnModel().getColumn(1).setPreferredWidth(250);
+        table.getColumnModel().getColumn(2).setPreferredWidth(120);
+        table.getColumnModel().getColumn(3).setPreferredWidth(150);
+        table.getColumnModel().getColumn(4).setPreferredWidth(80);
+        table.getColumnModel().getColumn(5).setPreferredWidth(150);
+        table.setEnabled(false);
+        
+        JScrollPane scrollPane = new JScrollPane(table);
+        scrollPane.setPreferredSize(new Dimension(850, 300));
+        
+        String title = "Schedule for " + (studentName != null ? studentName : "") + " (" + studentId + ")";
+        JOptionPane.showMessageDialog(this, scrollPane, title, JOptionPane.INFORMATION_MESSAGE);
+    }
+    
+    private String extractStudentName(String responseText) {
+        if (responseText.contains("Schedule for")) {
+            int start = responseText.indexOf("Schedule for ") + 13;
+            int end = responseText.indexOf(" (");
+            if (end > start) {
+                return responseText.substring(start, end);
+            }
+        }
+        return "";
     }
     
     private void viewUniversties() { 
@@ -397,25 +449,74 @@ public class AdminPageGUI extends JFrame {
                     return;
                 }
                 
-                // Special handling for VIEW_STUDENT_SCHEDULE - use JTable for better display
+             
+                if (msg.getType() == MessageType.REMOVE_COURSE && 
+                    response.getStatus() == Status.SUCCESS &&
+                    response.getText().contains("deleted successfully")) {
+                    
+                  
+                    String messageText = response.getText();
+                    String courseId = messageText.replace("Course ", "").replace(" deleted successfully", "").trim();
+                    
+                   
+                    JPanel panel = new JPanel();
+                    panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+                    panel.setBorder(BorderFactory.createEmptyBorder(20, 40, 20, 40));
+           
+                    JLabel titleLabel = new JLabel("Course Deleted!");
+                    titleLabel.setFont(titleLabel.getFont().deriveFont(Font.BOLD, 18f));
+                    titleLabel.setAlignmentX(JComponent.CENTER_ALIGNMENT);
+                    
+                  
+                    JLabel idLabel = new JLabel("Course ID:");
+                    idLabel.setFont(idLabel.getFont().deriveFont(14f));
+                    idLabel.setAlignmentX(JComponent.CENTER_ALIGNMENT);
+                    
+                   
+                    JLabel courseIdLabel = new JLabel(courseId);
+                    courseIdLabel.setFont(courseIdLabel.getFont().deriveFont(Font.BOLD, 20f));
+                    courseIdLabel.setAlignmentX(JComponent.CENTER_ALIGNMENT);
+                    
+                    panel.add(titleLabel);
+                    panel.add(Box.createVerticalStrut(15));
+                    panel.add(idLabel);
+                    panel.add(Box.createVerticalStrut(5));
+                    panel.add(courseIdLabel);
+                    
+                    JOptionPane.showMessageDialog(
+                        this,
+                        panel,
+                        "Success",
+                        JOptionPane.PLAIN_MESSAGE,
+                        null  
+                    );
+                    return;
+                }
+                
+                
                 if (msg.getType() == MessageType.VIEW_STUDENT_SCHEDULE && 
                     response.getList() != null && !response.getList().isEmpty()) {
                     
-                    // Parse course data and create table
-                    String[] columnNames = {"Course ID", "Course Title", "Class Time", "Instructor", "Credits", "Enrollment/Capacity"};
+                    String studentName = extractStudentName(response.getText());
+                    
+                    String[] columnNames = {
+                        "Course ID", "Course Title", "Class Time", "Instructor", 
+                        "Credits", "Capacity", "Waitlist", "Prerequisites"
+                    };
                     ArrayList<String[]> tableData = new ArrayList<>();
                     
                     for (String item : response.getList()) {
                         String[] parts = item.split("\\|");
-                        if (parts.length >= 6) {
-
+                        if (parts.length >= 8) {
                             tableData.add(new String[]{
                                 parts[0],  // Course ID
                                 parts[1],  // Course Title
-                                parts[2],  // Time
+                                parts[2],  // Class Time
                                 parts[3],  // Instructor
                                 parts[4] + " Credits",  // Credits
-                                "[" + parts[5] + "]"  // Enrollment/Capacity (format: "current/max")
+                                parts[5],  // Capacity
+                                parts[6],  // Waitlist
+                                parts[7]   // Prerequisites
                             });
                         }
                     }
@@ -425,18 +526,47 @@ public class AdminPageGUI extends JFrame {
                     table.setFont(new Font("Monospaced", Font.PLAIN, 12));
                     table.setRowHeight(20);
                     table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
-                    table.getColumnModel().getColumn(0).setPreferredWidth(80);   // Course ID
-                    table.getColumnModel().getColumn(1).setPreferredWidth(250);  // Course Title
-                    table.getColumnModel().getColumn(2).setPreferredWidth(120);  // Class Time
-                    table.getColumnModel().getColumn(3).setPreferredWidth(150);  // Instructor
-                    table.getColumnModel().getColumn(4).setPreferredWidth(80);   // Credits
-                    table.getColumnModel().getColumn(5).setPreferredWidth(150);  // Enrollment/Capacity
-                    table.setEnabled(false); // Make table read-only
+                    table.getColumnModel().getColumn(0).setPreferredWidth(80);
+                    table.getColumnModel().getColumn(1).setPreferredWidth(200);
+                    table.getColumnModel().getColumn(2).setPreferredWidth(120);
+                    table.getColumnModel().getColumn(3).setPreferredWidth(120);
+                    table.getColumnModel().getColumn(4).setPreferredWidth(80);
+                    table.getColumnModel().getColumn(5).setPreferredWidth(100);
+                    table.getColumnModel().getColumn(6).setPreferredWidth(150);
+                    table.getColumnModel().getColumn(7).setPreferredWidth(150);
+                    table.setEnabled(false);
                     
                     JScrollPane scrollPane = new JScrollPane(table);
-                    scrollPane.setPreferredSize(new Dimension(850, 300));
+                    scrollPane.setPreferredSize(new Dimension(1000, 400));
                     
-                    JOptionPane.showMessageDialog(this, scrollPane, response.getText(), JOptionPane.INFORMATION_MESSAGE);
+                    JPanel panel = new JPanel(new BorderLayout());
+                    JLabel nameLabel = new JLabel("Student: " + studentName);
+                    nameLabel.setFont(nameLabel.getFont().deriveFont(Font.BOLD, 14f));
+                    nameLabel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+                    panel.add(nameLabel, BorderLayout.NORTH);
+                    panel.add(scrollPane, BorderLayout.CENTER);
+                    
+                    JOptionPane.showMessageDialog(this, panel, "Student Schedule", JOptionPane.INFORMATION_MESSAGE);
+                    return;
+                }
+                
+                if (msg.getType() == MessageType.GET_REPORT && 
+                    response.getStatus() == Status.SUCCESS) {
+                    
+                    JTextArea textArea = new JTextArea(response.getText());
+                    textArea.setEditable(false);
+                    textArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
+                    textArea.setLineWrap(false);
+                    textArea.setWrapStyleWord(false);
+                    textArea.setBackground(Color.WHITE);
+                    
+                    JScrollPane scrollPane = new JScrollPane(textArea);
+                    scrollPane.setPreferredSize(new Dimension(900, 600));
+                    scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+                    scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+                    scrollPane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+                    
+                    JOptionPane.showMessageDialog(this, scrollPane, "System Report", JOptionPane.INFORMATION_MESSAGE);
                     return;
                 }
                 
