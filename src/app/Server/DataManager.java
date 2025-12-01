@@ -13,43 +13,63 @@ import app.models.User;
 public class DataManager {
 
     // File paths
-    private static final String FILE_PATH = "data/";
-    private static final String USERS_FILE = FILE_PATH + "Users.csv";
-    private static final String COURSES_FILE = FILE_PATH + "Courses.csv";
-    private static final String ENROLLMENTS_FILE = FILE_PATH + "Enrollments.csv";
+	private static final String FOLDER_PATH = "data/";
+//    private static final String FILE_PATH = "data/";
+//    private static final String USERS_FILE = FILE_PATH + "Users.csv";
+//    private static final String COURSES_FILE = FILE_PATH + "Courses.csv";
+//    private static final String ENROLLMENTS_FILE = FILE_PATH + "Enrollments.csv";
 
     public DataManager() {
         // Ensure data directory exists
-        new File(FILE_PATH).mkdirs();
+        new File(FOLDER_PATH).mkdirs();
     }
 
      //This is to be called by Server to load data upon start of server
      
-    public University loadDataFromFiles() {
-        University university = new University("RISE-EDU");
-
-        System.out.println("DataManager: Loading data...");
-        loadUsers(university);
-        loadCourses(university);
-        loadEnrollments(university);
-        System.out.println("DataManager: Data load complete.");
-
-        return university;
+    public ArrayList<University> loadAllUniversities(){
+    	ArrayList<University> loadedUniversities = new ArrayList<>();
+        File rootDir = new File(FOLDER_PATH);
+        
+        // to find all sub-directories (each folder is a university)
+        File[] universityFolders = rootDir.listFiles(File::isDirectory);
+        if (universityFolders != null) {
+            for (File folder : universityFolders) {
+                String uniName = folder.getName();
+                System.out.println("DataManager: Found university folder for : " + uniName);
+                
+                University university = new University(uniName);
+                String path = folder.getPath() + "/";
+                
+                //to load specific data from that folder
+                loadUsers(university, path + "Users.csv");
+                loadCourses(university, path + "Courses.csv");
+                loadEnrollments(university, path + "Enrollments.csv");
+                
+                loadedUniversities.add(university);
+            }
+        }
+        
+        return loadedUniversities;
     }
 
     //To be called by server upon shutdown of server
     public void saveDataToFiles(University university) {
-        System.out.println("DataManager: Saving data...");
-        saveUsers(university);
-        saveCourses(university);
-        saveEnrollments(university);
+    	//to create folder of data/university name
+        String path = FOLDER_PATH + university.getUniversityName() + "/";
+        new File(path).mkdirs();
+        
+        System.out.println("DataManager: Saving data for " + university.getUniversityName() + "....");
+        saveUsers(university, path + "Users.csv");
+        saveCourses(university, path + "Courses.csv");
+        saveEnrollments(university, path + "Enrollments.csv");
+        
         System.out.println("DataManager: Data saved.");
     }
 
 // Main methods to load users, load courses, and enrollments
     
-    private void loadUsers(University university) {
-        File file = new File(USERS_FILE);
+    private void loadUsers(University university, String filePath) {
+        File file = new File(filePath);
         if (!file.exists()) return;
 
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
@@ -83,13 +103,13 @@ public class DataManager {
                 }
             }
         } catch (IOException e) {
-            System.err.println("Error loading users: " + e.getMessage());
+            System.err.println("Error loading users for " + university.getUniversityName() +  ": " + e.getMessage());
         
     }
     }
 
-    private void loadCourses(University university) {
-        File file = new File(COURSES_FILE);
+    private void loadCourses(University university, String filePath) {
+        File file = new File(filePath);
         if (!file.exists()) return;
 
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
@@ -112,12 +132,12 @@ public class DataManager {
                 university.addCourse(c);
             }
         } catch (Exception e) {
-            System.err.println("Error loading courses: " + e.getMessage());
+            System.err.println("Error loading courses for" + university.getUniversityName() +  ": " + e.getMessage());
         }
     }
 
-    private void loadEnrollments(University university) {
-        File file = new File(ENROLLMENTS_FILE);
+    private void loadEnrollments(University university, String filePath) {
+        File file = new File(filePath);
         if (!file.exists()) return;
 
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
@@ -150,14 +170,14 @@ public class DataManager {
                 }
             }
         } catch (IOException e) {
-            System.err.println("Error loading enrollments: " + e.getMessage());
+            System.err.println("Error loading enrollments for " + university.getUniversityName() +  ": "  + e.getMessage());
         }
     }
     
 // to save to files from memory
     
-    private void saveUsers(University university) {
-        try (PrintWriter writer = new PrintWriter(new FileWriter(USERS_FILE))) {
+    private void saveUsers(University university, String filePath) {
+        try (PrintWriter writer = new PrintWriter(new FileWriter(filePath))) {
         	writer.println("User-Type,Username,Password,FirstName,LastName,ID, Holds"); // for our user header
             for (User u : university.getAllUsers()) {
                 String type = (u.getUserType() == UserType.STUDENT) ? "STUDENT" : "ADMIN";
@@ -171,19 +191,22 @@ public class DataManager {
                     if (!s.getHolds().isEmpty()) {
                         holds = String.join(";", s.getHolds());
                     }
-                }
-
                 // Format: type,username,password,firstname,lastname,id
                 writer.printf("%s,%s,%s,%s,%s,%s,%s%n", 
-                    type, u.getUsername(), u.getPassword(), u.getFirstName(), u.getLastName(), id, holds);
+                    type, s.getUsername(), s.getPassword(), s.getFirstName(), s.getLastName(), s.getStudentId(), holds);
+                } else if (u instanceof Admin) {
+                    Admin a = (Admin) u;
+                    writer.printf("ADMIN,%s,%s,%s,%s,%s,%n", 
+                        a.getUsername(), a.getPassword(), a.getFirstName(), a.getLastName(), a.getAdminId());
+                }
             }
         } catch (IOException e) {
             System.err.println("Error saving users: " + e.getMessage());
         }
     }
 
-    private void saveCourses(University university) {
-        try (PrintWriter writer = new PrintWriter(new FileWriter(COURSES_FILE))) {
+    private void saveCourses(University university, String filePath) {
+        try (PrintWriter writer = new PrintWriter(new FileWriter(filePath))) {
             for (Course c : university.getAllCourses()) {
                 // Format: id,name,time,location,credits,instructor,capacity,enrolled
                 writer.printf("%s,%s,%s,%s,%d,%s,%d,%d%n",
@@ -195,8 +218,8 @@ public class DataManager {
         }
     }
 
-    private void saveEnrollments(University university) {
-        try (PrintWriter writer = new PrintWriter(new FileWriter(ENROLLMENTS_FILE))) {
+    private void saveEnrollments(University university, String filePath) {
+        try (PrintWriter writer = new PrintWriter(new FileWriter(filePath))) {
             for (User u : university.getAllUsers()) {
                 if (u instanceof Student) {
                     Student s = (Student) u;

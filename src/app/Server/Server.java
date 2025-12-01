@@ -25,7 +25,6 @@ public class Server {
 
     private static SystemManager manager;
     private static DataManager dataManager;
-    private static University university;
     
     private static ExecutorService pool = Executors.newFixedThreadPool(100);
 
@@ -35,15 +34,31 @@ public class Server {
         manager = SystemManager.getInstance();
         dataManager = new DataManager();
 
-        //Load the data
+        //Load the data 
         System.out.println("Loading data from files...");
-        university = dataManager.loadDataFromFiles();
-        manager.loadUniversity(university);
+        ArrayList<University> allUniversities = dataManager.loadAllUniversities();
         
-        //When shutting down the server we also save from memory to the files.
+        if (allUniversities.isEmpty()) {
+            System.out.println("No universities found. Creating default university 'RISE-EDU'...");
+            University defaultUniversity = new University("RISE-EDU");
+            manager.loadUniversity(defaultUniversity);
+        } else {
+            for (University university : allUniversities) {
+                System.out.println("Loaded: " + university.getUniversityName());
+                manager.loadUniversity(university);
+            }
+        }
+        
+        //When shutting down the server, we also save from memory to the files.
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            System.out.println("Server is shutting down. Saving data...");
-            dataManager.saveDataToFiles(university);
+            System.out.println("Server is shutting down. Saving all data...");
+            // to save every existing university files to its own folder
+            for (String uniName : manager.getAllUniversityNames()) {
+                University university = manager.getUniversity(uniName);
+                if (university != null) {
+                    dataManager.saveDataToFiles(university);
+                }
+            }
             System.out.println("Data saved. Goodbye.");
         }));
         

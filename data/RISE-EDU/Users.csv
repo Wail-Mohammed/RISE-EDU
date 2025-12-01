@@ -1,0 +1,4 @@
+User-Type,Username,Password,FirstName,LastName,ID, Holds
+STUDENT,student,password,Student,Test,S0001,
+ADMIN,STUDENT,wail,$wail$,Wail,Mohammed,
+ADMIN,admin,admin,Admin,Admin,A0001,
