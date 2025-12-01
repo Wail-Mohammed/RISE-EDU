@@ -169,8 +169,8 @@ public class LoginPage extends JFrame {
         try {
         	if (client == null) client = new Client();
             // We connect on demand when user click Login.
-            client.connect(ip, 9898);
-//        	client.connect("76.132.181.252", 9999);
+//            client.connect(ip, 9898);
+        	client.connect("76.132.181.252", 9999);
 	
             Message response = sendLoginRequest(username, password, uniName);
 
