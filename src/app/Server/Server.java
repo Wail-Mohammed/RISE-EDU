@@ -161,6 +161,10 @@ public class Server {
 	                        case ADD_USER:
 	                            response = manager.addUser(currentUniversity, message.getList());
 	                            break;
+	                        case ADD_UNIVERSITY:
+	                            String name = message.getText(); 
+	                            response = manager.createNewUniversity(name);
+	                            break;
                             case ENROLL_COURSE:
                                 response = manager.processEnrollment(currentUniversity, currentUser.getUsername(), message.getText());
                                 break;

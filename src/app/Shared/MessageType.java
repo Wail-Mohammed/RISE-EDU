@@ -30,5 +30,7 @@ public enum MessageType {
     VIEW_UNIVERSITIES,
     
     // For enrollment list
-    LIST_ENROLLMENT
+    LIST_ENROLLMENT, 
+    // to add a new university if not currently found
+    ADD_UNIVERSITY
 }
