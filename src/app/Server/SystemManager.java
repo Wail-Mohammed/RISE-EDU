@@ -431,7 +431,8 @@ public class SystemManager {
         }
         
         report.generate(sb.toString());
-        
+        university.addReport(report); // using this as way to keep the report generated in the university's
+        //list of report so we can look at them when needed
         return new Message(MessageType.GET_REPORT, Status.SUCCESS, report.getReportData());
     }
 
