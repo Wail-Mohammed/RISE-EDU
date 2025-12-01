@@ -2,6 +2,8 @@ package Server;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.util.ArrayList;
+
 import org.junit.jupiter.api.Test;
 
 import app.Server.DataManager;
@@ -24,7 +26,9 @@ public class DataManagerTester {
 
         DataManager dataManager = new DataManager();
         dataManager.saveDataToFiles(university);
-        University loadedUniversity = dataManager.loadDataFromFiles();
+        ArrayList<University> loadedUniversities = dataManager.loadAllUniversities();
+        assertTrue(loadedUniversities.size() > 0);
+        University loadedUniversity = loadedUniversities.get(0);
         assertTrue(loadedUniversity.getAllUsers().size() > 0);
     }
 
@@ -40,7 +44,9 @@ public class DataManagerTester {
 
         DataManager dataManager = new DataManager();
         dataManager.saveDataToFiles(university);
-        University loadedUniversity = dataManager.loadDataFromFiles();
+        ArrayList<University> loadedUniversities = dataManager.loadAllUniversities();
+        assertTrue(loadedUniversities.size() > 0);
+        University loadedUniversity = loadedUniversities.get(0);
         assertTrue(loadedUniversity.getAllCourses().size() > 0);
     }
 }
