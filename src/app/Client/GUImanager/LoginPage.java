@@ -22,7 +22,7 @@ public class LoginPage extends JFrame {
     private Client client;
 
     //UI Components
-    private JTextField ipField = new JTextField("Enter Server IP address to connect", 20);
+    private JTextField ipField = new JTextField("localhost", 20);
     private JTextField uniField = new JTextField("RISE-EDU", 20);
     private JTextField usernameField = new JTextField(20);
     private JPasswordField passwordField = new JPasswordField(20);
@@ -40,7 +40,7 @@ public class LoginPage extends JFrame {
     }
 
     private void initializeFrame() {
-        setSize(500, 600);
+        setSize(500, 700);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         getContentPane().setBackground(BACKGROUND);
@@ -106,13 +106,13 @@ public class LoginPage extends JFrame {
         formPanel.add(uniField, gbc);
 
         //username
-        gbc.gridx = 0; gbc.gridy = 1;
+        gbc.gridx = 0; gbc.gridy = 2;
         formPanel.add(new JLabel("Username:"), gbc);
         gbc.gridx = 1;
         formPanel.add(usernameField, gbc);
 
         //password
-        gbc.gridx = 0; gbc.gridy = 2;
+        gbc.gridx = 0; gbc.gridy = 3;
         formPanel.add(new JLabel("Password:"), gbc);
         gbc.gridx = 1;
         formPanel.add(passwordField, gbc);
