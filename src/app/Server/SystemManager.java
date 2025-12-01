@@ -19,7 +19,6 @@ public class SystemManager {
 
     private static SystemManager instance; 
     private HashMap<String, University> universities;
-    private University university;
 
 
     public static synchronized SystemManager getInstance() {
@@ -31,23 +30,25 @@ public class SystemManager {
     	this.universities = new HashMap<>();
     }
     
+    public University getUniversity(String name) {
+        return universities.get(name);
+    }
     //to store user
-    public User findUser(String username) {
-        if (university == null) return null;
-        return university.getUser(username);
+    public User findUser(University uni, String username) {
+        if (uni == null) return null;
+        return uni.getUser(username);
     }
 
     // to be called at the start of the server to load info.
     public void loadUniversity(University uni) {
     	if (uni == null) return;
-
         // Store the university into the universities map
         universities.put(uni.getUniversityName(), uni);
 
-        // Set it as active only if none is active yet
-        if (this.university == null) {
-            this.university = uni;
-        }
+//        // Set it as active only if none is active yet
+//        if (this.university == null) {
+//            this.university = uni;
+//        }
         
         // If this is the very first run, empty csv files, then we create dummy data so you can login.
         if (uni.getAllUsers().isEmpty()) {
@@ -67,29 +68,20 @@ public class SystemManager {
         universities.put(name, new University(name));
     }
 
-    public boolean setActiveUniversity(String name) {
-        University uni = universities.get(name);
-        if (uni == null) return false;
-        university = uni;
-        return true;
-    }
-
-    public University getActiveUniversity() {
-        return university;
-    }
-
     public Collection<String> getAllUniversityNames() {
         return universities.keySet();
     }
     //authenticating users
-    public Message authenticateUser(String username, String password, String userType) {
-        if (university == null) {
-            return new Message(MessageType.LOGIN, Status.FAIL, "No university selected.");
+    public Message authenticateUser(String username, String password, String userType, String uniName) {
+    	University university = universities.get(uniName);
+    	if (university == null) {
+            return new Message(MessageType.LOGIN, Status.FAIL, "Selected University '" + uniName + "' is not found.");
         }
         User user = university.getUser(username);
-        if (user == null) return new Message(MessageType.LOGIN, Status.FAIL, "Username not found.");
+        if (user == null) return new Message(MessageType.LOGIN, Status.FAIL, "Username is not found in " + uniName);
         
         if (!user.checkPassword(password)) {return new Message(MessageType.LOGIN, Status.FAIL, "Invalid Password");}
+       
         if (userType.equalsIgnoreCase("ADMIN") && user.getUserType() != UserType.ADMIN) {
             return new Message(MessageType.LOGIN, Status.FAIL, "You are not an Admin.");
         }
@@ -101,14 +93,14 @@ public class SystemManager {
     
     // Core processes
     // For Students
-    public Message processEnrollment(String studentUsername, String courseId) {
+    public Message processEnrollment(University university, String studentUsername, String courseId) {
         Student student = university.getStudent(studentUsername);
         Course course = university.getCourse(courseId);
 
         if (student == null) return new Message(MessageType.ENROLL_COURSE, Status.FAIL, "Student is not found.");
         if (course == null) return new Message(MessageType.ENROLL_COURSE, Status.FAIL, "Course is not found.");
         
-        if (student.hasHolds()) return new Message(MessageType.ENROLL_COURSE, Status.FAIL, "Cannot Enroll Due to Hold: " + student.getHolds().get(0));
+        if (student.hasHolds()) return new Message(MessageType.ENROLL_COURSE, Status.FAIL, "Cannot Enroll Due to Hold in your account: " + student.getHolds().get(0));
         
         if (!prereqCheck(student, course)) {
             return new Message(MessageType.ENROLL_COURSE, Status.FAIL, "You have not met the prerequisite for " + course.getTitle());
@@ -120,12 +112,12 @@ public class SystemManager {
         }
         
         // using this to add student to waitlist
-        int post = course.waitlistPlaced(studentUsername);
+       course.waitlistPlaced(studentUsername);
         
-        return new Message(MessageType.ENROLL_COURSE, Status.FAIL, "Unfortunately, this course is full.");
+        return new Message(MessageType.ENROLL_COURSE, Status.FAIL, "Unfortunately, this course is full. Adding you to waitlist");
     }
 
-    public Message processDrop(String studentUsername, String courseId) {
+    public Message processDrop(University university, String studentUsername, String courseId) {
         Student student = university.getStudent(studentUsername);
         Course course = university.getCourse(courseId);
 
@@ -143,7 +135,7 @@ public class SystemManager {
         return new Message(MessageType.DROP_COURSE, Status.FAIL, "Not enrolled in " + courseId);
     }
 
-    public Message processDropByStudentId(String studentId, String courseId) {
+    public Message processDropByStudentId(University university, String studentId, String courseId) {
         Student student = null;
         for (Student s : university.getAllStudents()) {
             if (s.getStudentId().equals(studentId)) {
@@ -156,10 +148,10 @@ public class SystemManager {
             return new Message(MessageType.DROP_COURSE, Status.FAIL, "Student ID not found.");
         }
         
-        return processDrop(student.getUsername(), courseId);
+        return processDrop(university, student.getUsername(), courseId);
     }
 
-    public Message getStudentSchedule(String studentUsername) {
+    public Message getStudentSchedule(University university, String studentUsername) {
         Student student = university.getStudent(studentUsername);
         if (student == null) return new Message(MessageType.VIEW_SCHEDULE, Status.FAIL, "Student is not found.");
 
@@ -173,7 +165,8 @@ public class SystemManager {
                 c.getInstructor(),
                 c.getCredits(),
                 c.getCurrentEnrollment(), 
-                c.getMaxCapacity()
+                c.getMaxCapacity(),
+                c.getPrerequisites()
             );        	
             displayList.add(studentScheduleDetails);
         }
@@ -182,7 +175,7 @@ public class SystemManager {
         return new Message(MessageType.VIEW_SCHEDULE, Status.SUCCESS, "Schedule:", displayList);
     }
     
-    public Message getStudentScheduleByStudentId(String studentId) {
+    public Message getStudentScheduleByStudentId(University university, String studentId) {
         // Search by studentId 
         Student student = null;
         for (Student s : university.getAllStudents()) {
@@ -229,23 +222,16 @@ public class SystemManager {
     }
 
     // For Admins
-    public Message addUser(ArrayList<String> args) {
+    public Message addUser(University university, ArrayList<String> args) {
         // Args: [Type, Username, Password, FirstName, LastName, ID]
-        if (args.size() < 7) return new Message(MessageType.ADD_USER, Status.FAIL, "Missing info");
+        if (args.size() < 6) return new Message(MessageType.ADD_USER, Status.FAIL, "Missing info");
         
-        String universityName = args.get(0);
-        String type = args.get(1);
-        String user = args.get(2);
-        String pass = args.get(3);
-        String first = args.get(4);
-        String last = args.get(5);
-        String id = args.get(6);
-
-        University uni = universities.get(universityName);
-        if (uni == null) {
-            uni = new University(universityName);
-            universities.put(universityName, uni);
-        }
+        String type = args.get(0);
+        String user = args.get(1);
+        String pass = args.get(2);
+        String first = args.get(3);
+        String last = args.get(4);
+        String id = args.get(5);
         
         if (university.getUser(user) != null) {
             return new Message(MessageType.ADD_USER, Status.FAIL, "Username taken");
@@ -257,10 +243,10 @@ public class SystemManager {
             university.addAdmin(new Admin(user, pass, first, last, id));
         }
         
-        return new Message(MessageType.ADD_USER, Status.SUCCESS, "User " + user + " created.");
+        return new Message(MessageType.ADD_USER, Status.SUCCESS, "User " + user + " created in " + university.getUniversityName());
     }
     
-    public Message createCourse(ArrayList<String> args) {
+    public Message createCourse(University university, ArrayList<String> args) {
         // Args: [ID, Name, Time, Location, Credits, Instructor, Capacity]
         if (args.size() < 7) return new Message(MessageType.CREATE_COURSE, Status.FAIL, "Missing Data");
         
@@ -280,7 +266,7 @@ public class SystemManager {
         }
     }
 
-    public Message deleteCourse(String courseId) {
+    public Message deleteCourse(University university, String courseId) {
 
     	if (university.removeCourse(courseId)) {
             return new Message(MessageType.REMOVE_COURSE, Status.SUCCESS, "Course " + courseId + " deleted successfully");
@@ -288,7 +274,7 @@ public class SystemManager {
         return new Message(MessageType.REMOVE_COURSE, Status.FAIL, "Course Not Found");
     }
 
-    public Message placeHoldOnAccount(String studentId, String reason) {
+    public Message placeHoldOnAccount(University university, String studentId, String reason) {
         // Search by ID (Iterate because Map is keyed by Username)
         for (Student s : university.getAllStudents()) {
             if (s.getStudentId().equals(studentId)) {
@@ -299,7 +285,7 @@ public class SystemManager {
         return new Message(MessageType.ADD_HOLD, Status.FAIL, "Student ID Not Found");
     }
 
-    public Message removeHoldOnAccount(String studentId, String reason) {
+    public Message removeHoldOnAccount(University university, String studentId, String reason) {
         for (Student s : university.getAllStudents()) {
             if (s.getStudentId().equals(studentId)) {
                 s.removeHold(reason);
@@ -309,7 +295,7 @@ public class SystemManager {
         return new Message(MessageType.REMOVE_HOLD, Status.FAIL, "Student Not Found");
     }
 
-    public Message getStudentHolds(String studentUsername) {
+    public Message getStudentHolds(University university, String studentUsername) {
         Student student = university.getStudent(studentUsername);
         
         if (student == null) {
@@ -333,7 +319,7 @@ public class SystemManager {
             "Account Holds", holdList);
     }
 
-    public Message getAllCourses() {
+    public Message getAllCourses(University university) {
         ArrayList<String> list = new ArrayList<>();
         for (Course c : university.getAllCourses()) {
             // Format: Course ID | Course Name | Time | Instructor | Credits | Enrollment/Capacity
@@ -351,7 +337,7 @@ public class SystemManager {
         return new Message(MessageType.LIST_COURSES, Status.SUCCESS, " Course Catalog for Spring 2026", list);
     }
 
-    public Message getAllStudents() {
+    public Message getAllStudents(University university) {
         ArrayList<String> list = new ArrayList<>();
         for (Student s : university.getAllStudents()) {
             list.add(s.getStudentId() + ": " + s.getFirstName() + " " + s.getLastName());
@@ -359,7 +345,7 @@ public class SystemManager {
         return new Message(MessageType.VIEW_STUDENTS, Status.SUCCESS, "Students", list);
     }
     
-    public Message getAllAdmins() {
+    public Message getAllAdmins(University university) {
         ArrayList<String> list = new ArrayList<>();
         for (Admin a : university.getAllAdmins()) {
             list.add(a.getAdminId() + ": " + a.getFirstName() + " " + a.getLastName() + " (" + a.getUsername() + ")");
@@ -380,12 +366,12 @@ public class SystemManager {
         return new Message(MessageType.VIEW_UNIVERSITIES, Status.SUCCESS, "Available Universities:", list);
     }
     
-    public Message getReport() {
-        Report report = new Report("Enrollment Summary", "RISE-EDU");
+    public Message getReport(University university) {
+        Report report = new Report("Enrollment Summary", university.getUniversityName());
         
         StringBuilder sb = new StringBuilder();
-        sb.append("RISE-EDU SYSTEM REPORT\n");
-        sb.append("Generated: ").append(new Date()).append("\n\n");
+        sb.append("SYSTEM REPORT FOR : " + university.getUniversityName() + "\n");
+        sb.append("Generated on : ").append(new Date()).append("\n\n");
         
         sb.append("---------------- COURSES ----------------\n");
         for (Course c : university.getAllCourses()) {
@@ -436,7 +422,7 @@ public class SystemManager {
         return new Message(MessageType.GET_REPORT, Status.SUCCESS, report.getReportData());
     }
 
-    public Message editCourse(ArrayList<String> args) {
+    public Message editCourse(University university, ArrayList<String> args) {
         if (args.size() < 3) return new Message(MessageType.EDIT_COURSE, Status.FAIL, "Missing info");
         
         String id = args.get(0);
@@ -458,7 +444,7 @@ public class SystemManager {
     }
     
     // this will show the enrollment list for a course 
-    public Message getEnrollmentList(String courseId) {
+    public Message getEnrollmentList(University university, String courseId) {
         Course course = university.getCourse(courseId);
 
         if (course == null) {
@@ -492,7 +478,6 @@ public class SystemManager {
                            "Enrollment List for " + courseId, displayList);
     }
     
-    // Add methods for waitlist and pre req
     
     private boolean prereqCheck(Student student, Course course) {    
         ArrayList<String> prereqC = course.getPrerequisites();
