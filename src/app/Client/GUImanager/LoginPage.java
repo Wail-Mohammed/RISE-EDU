@@ -22,7 +22,8 @@ public class LoginPage extends JFrame {
     private Client client;
 
     //UI Components
-    private JTextField ipField = new JTextField("localhost", 20); // NEW: Input for Server IP
+    private JTextField ipField = new JTextField("localhost", 20);
+    private JTextField uniField = new JTextField("RISE-EDU", 20);
     private JTextField usernameField = new JTextField(20);
     private JPasswordField passwordField = new JPasswordField(20);
     private JButton goButton = new JButton("Go");
@@ -39,7 +40,7 @@ public class LoginPage extends JFrame {
     }
 
     private void initializeFrame() {
-        setSize(500, 550);
+        setSize(500, 700);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         getContentPane().setBackground(BACKGROUND);
@@ -97,15 +98,21 @@ public class LoginPage extends JFrame {
         formPanel.add(new JLabel("Server IP:"), gbc);
         gbc.gridx = 1;
         formPanel.add(ipField, gbc);
+        
+        // University name
+        gbc.gridx = 0; gbc.gridy = 1;
+        formPanel.add(new JLabel("University: "), gbc);
+        gbc.gridx = 1;
+        formPanel.add(uniField, gbc);
 
         //username
-        gbc.gridx = 0; gbc.gridy = 1;
+        gbc.gridx = 0; gbc.gridy = 2;
         formPanel.add(new JLabel("Username:"), gbc);
         gbc.gridx = 1;
         formPanel.add(usernameField, gbc);
 
         //password
-        gbc.gridx = 0; gbc.gridy = 2;
+        gbc.gridx = 0; gbc.gridy = 3;
         formPanel.add(new JLabel("Password:"), gbc);
         gbc.gridx = 1;
         formPanel.add(passwordField, gbc);
@@ -141,6 +148,7 @@ public class LoginPage extends JFrame {
         String ip = ipField.getText().trim(); 
         String username = usernameField.getText().trim();
         String password = new String(passwordField.getPassword());
+        String uniName = uniField.getText().trim();
 
         if (ip.isEmpty()) ip = "localhost"; // Default
 
@@ -150,11 +158,12 @@ public class LoginPage extends JFrame {
         }
         //to connect to the server
         try {
+        	if (client == null) client = new Client();
             // We connect on demand when user click Login.
             client.connect(ip, 9898);
 //        	client.connect("76.132.181.252", 9999);
 	
-            Message response = sendLoginRequest(username, password);
+            Message response = sendLoginRequest(username, password, uniName);
 
             if (response != null && response.getStatus() == Status.SUCCESS) {
                 dispose();
@@ -185,11 +194,12 @@ public class LoginPage extends JFrame {
         new AdminPageGUI("Welcome " + username + "!", client).setVisible(true);
     }
 
-    private Message sendLoginRequest(String username, String password) throws IOException, ClassNotFoundException {
+    private Message sendLoginRequest(String username, String password, String uniName) throws IOException, ClassNotFoundException {
         ArrayList<String> payload = new ArrayList<>();
         payload.add(username);
         payload.add(password);
         payload.add(studentRadio.isSelected() ? "STUDENT" : "ADMIN");
+        payload.add(uniName);
         Message request = new Message(MessageType.LOGIN, Status.NULL, "", payload);
         return client.send(request);
     }
