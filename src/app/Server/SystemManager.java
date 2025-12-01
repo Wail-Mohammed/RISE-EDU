@@ -63,6 +63,25 @@ public class SystemManager {
         }
     }
  // For universities
+    public Message createNewUniversity(String uniName) {
+        if (universities.containsKey(uniName)) {
+            return new Message(MessageType.ADD_UNIVERSITY, Status.FAIL, "Cannot add this University. '" + uniName + "' already exists in the system.");
+        }
+
+        University newUni = new University(uniName);
+        
+        // to create an admin to log in and then create other student users.
+        newUni.addAdmin(new Admin("admin", "admin", "AdminFirst", "AdminLast", "A0001"));
+        
+        //to add student by default
+        newUni.addStudent(new Student("student", "password", "StudentFirst", "StudentLast", "S0001"));
+        
+        newUni.addCourse(new Course("CS311", "Programming Languages Concepts", "MW 11:00", "N212", 3, "Dr. kang", 35, 0));
+        
+        universities.put(uniName, newUni);
+        
+        return new Message(MessageType.ADD_UNIVERSITY, Status.SUCCESS, "University '" + uniName + "' created successfully.");
+    }
     public void addUniversity(String name) {
         if (universities.containsKey(name)) return;
         universities.put(name, new University(name));

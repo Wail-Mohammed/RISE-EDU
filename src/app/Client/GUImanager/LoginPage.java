@@ -122,9 +122,18 @@ public class LoginPage extends JFrame {
 
     private JPanel createButtonPanel() {
         stylePrimaryButton(goButton);
-        JPanel buttonPanel = new JPanel();
+        JPanel buttonPanel = new JPanel(new GridLayout(1, 2, 10, 0));
         buttonPanel.setOpaque(false);
+
+        JButton createUniButton = new JButton("New Uni");
+        createUniButton.setBackground(new Color(100, 200, 100));
+        createUniButton.setPreferredSize(new Dimension(160, 50));
+        createUniButton.setFocusPainted(false);
+
+        createUniButton.addActionListener(e -> handleCreateUniversity());
+        buttonPanel.add(createUniButton);
         buttonPanel.add(goButton);
+        
         return buttonPanel;
     }
 
@@ -183,6 +192,32 @@ public class LoginPage extends JFrame {
         } catch (IOException | ClassNotFoundException e) {
             showInformation("Unable to connect to server at " + ip + "\nError: " + e.getMessage());
             client.disconnect();
+        }
+    }
+    
+    private void handleCreateUniversity() {
+        String newUniversityName = JOptionPane.showInputDialog(this, "Enter name for a new University:");
+        if (newUniversityName == null || newUniversityName.trim().isEmpty()) return;
+        
+        String ip = ipField.getText().trim();
+        if (ip.isEmpty()) ip = "localhost";
+
+        try {
+            if (client == null) client = new Client();
+            client.connect(ip, 9898);
+            
+            Message req = new Message(MessageType.ADD_UNIVERSITY, Status.NULL, newUniversityName.trim());
+            Message res = client.send(req);
+            
+            JOptionPane.showMessageDialog(this, res.getText());
+            
+            if (res.getStatus() == Status.SUCCESS) {
+                uniField.setText(newUniversityName.trim());
+            }
+            
+            client.disconnect();
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage());
         }
     }
 

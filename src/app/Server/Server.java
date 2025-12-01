@@ -9,6 +9,7 @@ import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -24,7 +25,6 @@ public class Server {
 
     private static SystemManager manager;
     private static DataManager dataManager;
-    private static University university;
     
     private static ExecutorService pool = Executors.newFixedThreadPool(100);
 
@@ -34,15 +34,31 @@ public class Server {
         manager = SystemManager.getInstance();
         dataManager = new DataManager();
 
-        //Load the data
+        //Load the data 
         System.out.println("Loading data from files...");
-        university = dataManager.loadDataFromFiles();
-        manager.loadUniversity(university);
+        ArrayList<University> allUniversities = dataManager.loadAllUniversities();
         
-        //When shutting down the server we also save from memory to the files.
+        if (allUniversities.isEmpty()) {
+            System.out.println("No universities found. Creating default university 'RISE-EDU'...");
+            University defaultUniversity = new University("RISE-EDU");
+            manager.loadUniversity(defaultUniversity);
+        } else {
+            for (University university : allUniversities) {
+                System.out.println("Loaded: " + university.getUniversityName());
+                manager.loadUniversity(university);
+            }
+        }
+        
+        //When shutting down the server, we also save from memory to the files.
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            System.out.println("Server is shutting down. Saving data...");
-            dataManager.saveDataToFiles(university);
+            System.out.println("Server is shutting down. Saving all data...");
+            // to save every existing university files to its own folder
+            for (String uniName : manager.getAllUniversityNames()) {
+                University university = manager.getUniversity(uniName);
+                if (university != null) {
+                    dataManager.saveDataToFiles(university);
+                }
+            }
             System.out.println("Data saved. Goodbye.");
         }));
         
@@ -95,6 +111,7 @@ public class Server {
         private Socket socket;
         private SystemManager manager;
         private User currentUser; 
+        private University currentUniversity;
         private final int clientId;
 
         ClientHandler(Socket socket, SystemManager manager) {
@@ -121,80 +138,94 @@ public class Server {
                         String username = message.getList().get(0);
                         String password = message.getList().get(1);
                         String userType =  message.getList().get(2);
+                        String uniName =  message.getList().get(3);
                         
-						response = manager.authenticateUser(username, password, userType);
+						response = manager.authenticateUser(username, password, userType, uniName);
                         
                         if (response.getStatus() == Status.SUCCESS) {
-                            this.currentUser = manager.findUser(username);
-                            System.out.println("User '" + username + "' is logged in.");
+                            this.currentUniversity = manager.getUniversity(uniName);
+                            this.currentUser = manager.findUser(currentUniversity, username);
+                            System.out.println("User '" + username + "' is logged in to " + uniName);
                         }
                     } 
                     else if (type == MessageType.LOGOUT) {
                         System.out.println("Client is logging out...");
                         response = new Message(MessageType.LOGOUT, Status.SUCCESS, "Logged out successfully.");
                     }
+                    else if (type == MessageType.ADD_UNIVERSITY) {
+                        System.out.println("Processing ADD_UNIVERSITY request...");
+                        String newUniversityName = message.getText(); 
+                        response = manager.createNewUniversity(newUniversityName);
+                    }
                     else {
+                    	if (currentUniversity == null) { //passing university to all methods
+                            response = new Message(MessageType.LOGIN, Status.FAIL, "Error: No University Selected");
+                        } else {
                         // to pass the requests to the server (system manager)
                         switch (type) {
 	                        case ADD_USER:
-	                            response = manager.addUser(message.getList());
+	                            response = manager.addUser(currentUniversity, message.getList());
+	                            break;
+	                        case ADD_UNIVERSITY:
+	                            String name = message.getText(); 
+	                            response = manager.createNewUniversity(name);
 	                            break;
                             case ENROLL_COURSE:
-                                response = manager.processEnrollment(currentUser.getUsername(), message.getText());
+                                response = manager.processEnrollment(currentUniversity, currentUser.getUsername(), message.getText());
                                 break;
                             case DROP_COURSE:
-                                response = manager.processDrop(currentUser.getUsername(), message.getText());
+                                response = manager.processDrop(currentUniversity, currentUser.getUsername(), message.getText());
                                 break;
                             case VIEW_SCHEDULE:
-                                response = manager.getStudentSchedule(currentUser.getUsername());
+                                response = manager.getStudentSchedule(currentUniversity, currentUser.getUsername());
                                 break;
                             case LIST_COURSES:
-                                response = manager.getAllCourses();
+                                response = manager.getAllCourses(currentUniversity);
                                 break;
                             case VIEW_HOLD:
-                                response = manager.getStudentHolds(currentUser.getUsername());
+                                response = manager.getStudentHolds(currentUniversity, currentUser.getUsername());
                                 break;
                             case CREATE_COURSE:
-                                response = manager.createCourse(message.getList());
+                                response = manager.createCourse(currentUniversity, message.getList());
                                 break;
                             case REMOVE_COURSE:
-                                response = manager.deleteCourse(message.getText());
+                                response = manager.deleteCourse(currentUniversity, message.getText());
                                 break;
                             case VIEW_STUDENTS:
-                                response = manager.getAllStudents();
+                                response = manager.getAllStudents(currentUniversity);
                                 break;
                             case VIEW_ADMINS:
-                                response = manager.getAllAdmins();
+                                response = manager.getAllAdmins(currentUniversity);
                                 break;
                             case VIEW_STUDENT_SCHEDULE:
                                 // Args: studentId in message.getText()
-                                response = manager.getStudentScheduleByStudentId(message.getText());
+                                response = manager.getStudentScheduleByStudentId(currentUniversity, message.getText());
                                 break;
                             case GET_REPORT:
-                                response = manager.getReport();
+                                response = manager.getReport(currentUniversity);
                                 break;
                             case ADD_HOLD:
-                                response = manager.placeHoldOnAccount(message.getList().get(0), message.getList().get(1));
+                                response = manager.placeHoldOnAccount(currentUniversity, message.getList().get(0), message.getList().get(1));
                                 break;
                             case REMOVE_HOLD:
-                                response = manager.removeHoldOnAccount(message.getList().get(0), message.getList().get(1));
+                                response = manager.removeHoldOnAccount(currentUniversity, message.getList().get(0), message.getList().get(1));
                                 break;
                             case WITHDRAW_STUDENT:
-                                Message dropResult = manager.processDropByStudentId(message.getList().get(0), message.getList().get(1));
+                                Message dropResult = manager.processDropByStudentId(currentUniversity, message.getList().get(0), message.getList().get(1));
                                 response = new Message(MessageType.WITHDRAW_STUDENT, dropResult.getStatus(), dropResult.getText());
                                 break;
                             case LIST_ENROLLMENT:
-                                response = manager.getEnrollmentList(message.getText());
+                                response = manager.getEnrollmentList(currentUniversity, message.getText());
                                 break;
                             case EDIT_COURSE:
-                                response = manager.editCourse(message.getList());
+                                response = manager.editCourse(currentUniversity, message.getList());
                                 break;
                             case VIEW_UNIVERSITIES:
-                                response = manager.getAllUniversities();
-                                break;
+                            	response = new Message(MessageType.VIEW_UNIVERSITIES, Status.SUCCESS, "Available", new ArrayList<>(manager.getAllUniversityNames()));                                break;
                             default:
                                 response = new Message(type, Status.FAIL, "Unknown request.");
                         }
+                    }
                     }
 
                     out.writeObject(response);
