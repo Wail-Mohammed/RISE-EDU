@@ -8,3 +8,7 @@
 # Ignore all compiled class files
 *.class
 **/*.class
+
+# Ignore test scripts
+test.sh
+*.sh
