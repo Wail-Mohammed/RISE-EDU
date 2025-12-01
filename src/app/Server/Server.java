@@ -152,6 +152,11 @@ public class Server {
                         System.out.println("Client is logging out...");
                         response = new Message(MessageType.LOGOUT, Status.SUCCESS, "Logged out successfully.");
                     }
+                    else if (type == MessageType.ADD_UNIVERSITY) {
+                        System.out.println("Processing ADD_UNIVERSITY request...");
+                        String newUniversityName = message.getText(); 
+                        response = manager.createNewUniversity(newUniversityName);
+                    }
                     else {
                     	if (currentUniversity == null) { //passing university to all methods
                             response = new Message(MessageType.LOGIN, Status.FAIL, "Error: No University Selected");

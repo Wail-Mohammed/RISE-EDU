@@ -1,0 +1,3 @@
+User-Type,Username,Password,FirstName,LastName,ID, Holds
+STUDENT,student,password,StudentFirst,StudentLast,S0001,
+ADMIN,admin,admin,AdminFirst,AdminLast,A0001,
