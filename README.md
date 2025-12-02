@@ -33,6 +33,38 @@ The data is saved in csv files within the project, DataManger loads in the data 
 - Courses and students are linked to specific universities
 - Administrators can manage courses per university
 
+##### Top 10 Requirements:
+1. Student user’s login info will be the uppercase letter ‘S’ along with
+their first name and last name and last 2 digits of their year of birth,
+e.g. firstnamelastnameYY. (3.1.1.2)- [Common Requirements]
+2. Administrator user’s login info will be the uppercase letter ‘A’ along
+with their first name and last name and last 2 digits of their year of
+birth, e.g. firstnamelastnameYY.(3.1.1.3) - [Common Requirements]
+3. Students shall be allowed to look up courses by Course names,
+Course ID, course time, instructor name, class location, class size
+the semester those courses are offered. (3.1.2.2) - [Student
+Requirements]
+4. The system shall ensure all course prerequisites are satisfied
+before successfully enrolling a student user in a course.(3.1.2.3) -
+[Student Requirements]
+5. The system shall allow student users to add a class or drop a class
+during add/drop period. (3.1.2.3) - [Student Requirements]
+6. The administrator will be allowed to add courses, delete courses,
+and edit courses stored in a course list. (3.1.3.2) - [Administrator
+Requirements ]
+7. The administrator will be allowed to enroll a student in a course,
+drop a student from a course, as well as withdraw a student from
+a course only during add/drop period or withdrawal period.
+(3.1.3.2)-[Administrator Requirements ]
+8. The system should keep track of every enrollment action that
+student user makes, such as add, drop, waitlist, withdraw for each
+course. (3.1.4.1) - [Reporting Module]
+9. The system will save the updated courses info associated with
+every students account with timestamps (3.1.4.2) - [Reporting
+Module]
+10. The system shall allow school administrators to display a student’s
+past course enrollments. (3.1.4.4) - [Reporting Module]
+
 ##### Limitations:
 - Adding add/remove/withdraw periods to enrollment periods.
 - We still need to implement input validation/sanitization from the client side.
