@@ -3,7 +3,7 @@
 
 ### Overview
 
-Rise-Edu is a Java-based client-server program that helps students manage their courses. Students can enroll in classes, drop courses, withdraw, join waitlists, and check their schedules. Administrators can add users (students or admins), create and edit courses, withdraw students, manage holds, view reports, and see lists of system admins.
+Rise-Edu is a Java-based client-server program that helps students manage their courses. Students can enroll in classes, drop courses, withdraw, join waitlists, and check their schedules. Administrators can add users (students or admins), create and edit courses, withdraw students, manage holds, view reports, and see lists of system admins. At the user login point, user can create university, which in turn the system manager will create defualt users for admin and student, as well as CSV files for Users, Courses, and Enrollments. 
 
 The system runs on a multithreaded server that communicates with multiple clients over TCP/IP. Each client connects from a separate computer, and all communication is done using serialized message objects.
 
