@@ -1,4 +1,7 @@
 User-Type,Username,Password,FirstName,LastName,ID, Holds
+STUDENT,emmanuel,password,Emmanuel,S,S0003,
 STUDENT,student,password,StudentFirst,StudentLast,S0001,
-STUDENT,wail,$wail$,Wail,Mohammed,S0001,
+STUDENT,Tim,password,Tim,Doe,S0006,
+STUDENT,wail,password,Wail,M,S0002,
+STUDENT,shichang,password,shichang,w,S0004,
 ADMIN,admin,admin,AdminFirst,AdminLast,A0001,
