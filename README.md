@@ -33,8 +33,16 @@ The data is saved in csv files within the project, DataManger loads in the data 
 - Courses and students are linked to specific universities
 - Administrators can manage courses per university
 
+##### Limitations:
+- Adding add/remove/withdraw periods to enrollment periods.
+- We still need to implement input validation/sanitization from the client side.
+- Currently, changes to the CSV files are only saved when the server shuts down overwriting existing files for a specific university. If we had more time we would implement immediate or periodic saving to prevent potential data loss or rollback.
+- Waitlists are implemented but are not currently promoting the next person in the waitlist position to move up a spot when someone leaves the waitlist.
+- User profiles are currently not editable and can’t modify passwords by users. Only admins can set user information and can’t be changed.
+
 ### File Overview:
-``` /src
+```
+/app
   /client           # Contains all client-side code
     Client.java
   /client.GUImanager  # Contains all the GUI's
@@ -61,7 +69,7 @@ The data is saved in csv files within the project, DataManger loads in the data 
     Status.java
     UserType.java
     
-/src/JunitTests # Contains all the test for our classes and methods
+/JunitTests # Contains all the test for our classes and methods
   /app
     AllTests.java
   /Client
