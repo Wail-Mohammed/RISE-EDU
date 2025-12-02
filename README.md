@@ -155,6 +155,24 @@ These tests ensured that core system functionalities—such as data loading and 
 /Meeting Minutes
   #Contains all meeting minutes
 
+## Server Architecture
+Our server uses a simple multi-threaded design so that multiple student/admins can connect at the same time without blocking each other.
+  -the main server keeps listening on the port
+  -when a new client connects, the server creates a new ClientHandler task.
+  -this task is given to a thread pool
+  -each client gets its own thread, which handles all communication with that client until they log out.
+How the flow works
+1. client connects
+2. server accepts the socket
+3. server hands it to the thread pool
+4. a worker thread starts running clientHandler.run()
+5. this thread loops:
+        read a message
+        process it with systemmanager
+        send the response
+6. when the client logs out, the thread finishes and returns to the pool
+
+
 README.md           # Project overview, features, setup instructions
 ```
   
