@@ -72,6 +72,22 @@ past course enrollments. (3.1.4.4) - [Reporting Module]
 - Waitlists are implemented but are not currently promoting the next person in the waitlist position to move up a spot when someone leaves the waitlist.
 - User profiles are currently not editable and can’t modify passwords by users. Only admins can set user information and can’t be changed.
 
+##### JUnit Testing:
+JUnit tests were written and executed for all primary classes in the system. All major methods passed successfully. The classes covered include:
+- SystemManager
+- DataManager
+- Server
+- Client
+- Message
+- MessageType
+- University
+- Student
+- Admin
+- User
+- Schedule
+- Report
+These tests ensured that core system functionalities—such as data loading and saving, client-server communication, message handling, course management, user operations, and reporting—operate correctly and consistently across the application
+
 ### File Overview:
 ```
 /app
